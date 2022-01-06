@@ -16,6 +16,10 @@ double estimate(int n);
 double nthTerm(int n);
 
 int main(int argc, char* argv[]) {
+    if (argc > 2) {
+        printf("Please only input one argument.\n");
+        return EXIT_FAILURE;
+    }
     int n;
     // Only run if there are arguments
     for (char** arg = argv + 1; *arg; ++arg) {
@@ -26,7 +30,7 @@ int main(int argc, char* argv[]) {
         if (num > 0) {
             n = num;
             double result = estimate(n);
-            printf("Our estimate of Pi is %f\n", result);
+            printf("Our estimate of Pi is %.20f\n", result);
             return EXIT_SUCCESS;
         }
     }
