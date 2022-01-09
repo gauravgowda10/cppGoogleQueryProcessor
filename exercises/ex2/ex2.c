@@ -19,7 +19,7 @@ void DumpBytes(void* pData, int32_t byteLen);
 /*
 
 */
-void CopyAndSort(uint8_t arr1, uint8_t arr2, int32_t arrayLen);
+void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int32_t arrayLen);
 
 int main(int argc, char* argv[]) {
   int32_t int_val = 1;
@@ -34,18 +34,23 @@ int main(int argc, char* argv[]) {
   CopyAndSort(arr_unsorted, arr_sorted, arrayLen);
   DumpBytes(arr_sorted, sizeof(uint8_t) * arrayLen);
 
+  uint8_t a_byte = 0xD1;
+  printf("The byte is: %02" PRIx8 " -- enjoy!\n", a_byte);
+
   return EXIT_SUCCESS;
 }
 
 void DumpBytes(void* pData, int32_t byteLen) {
     int i;
+    uint8_t* byteData = (uint8_t*) pData;
     for (i = 0; i < byteLen; i++) {
-        // byte = pData[i];
+        uint8_t byte = byteData[i];
+        printf("The byte is: %02" PRIx8 "!\n", byte);
     }
 
-    printf("The %d bytes starting at %x are: __", byteLen, pData);
+    printf("The %d bytes starting at %p are:\n", byteLen, byteData);
 }
 
-void CopyAndSort(uint8_t arr1, uint8_t arr2, int32_t arrayLen) {
+void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int32_t arrayLen) {
 
 }
