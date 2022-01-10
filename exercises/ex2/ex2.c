@@ -17,25 +17,21 @@ the address passed in, and the bytes of memory as exactly two digits each in low
 void DumpBytes(void* pData, int32_t byteLen);
 
 /*
-
+Sorts and copies contents of arr1 into arr2 using insertion sort
 */
-void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int32_t arrayLen);
+void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int arrayLen);
 
 int main(int argc, char* argv[]) {
   int32_t int_val = 1;
-  int32_t arrayLen = 11;
   float   float_val = 1.0f;
   uint8_t arr_unsorted[] = {3, 2, 0, 8, 17, 6, 10, 7, 8, 1, 12};
   uint8_t arr_sorted[]   = {0, 0, 0, 0,  0, 0,  0, 0, 0, 0,  0};
 
   DumpBytes(&int_val, sizeof(int_val));
   DumpBytes(&float_val, sizeof(float_val));
-  DumpBytes(arr_unsorted, sizeof(uint8_t) * arrayLen);
-  CopyAndSort(arr_unsorted, arr_sorted, arrayLen);
-  DumpBytes(arr_sorted, sizeof(uint8_t) * arrayLen);
-
-  uint8_t a_byte = 0xD1;
-  printf("The byte is: %02" PRIx8 " -- enjoy!\n", a_byte);
+  DumpBytes(arr_unsorted, sizeof(arr_unsorted));
+  CopyAndSort(arr_unsorted, arr_sorted, sizeof(arr_unsorted));
+  DumpBytes(arr_sorted, sizeof(arr_sorted));
 
   return EXIT_SUCCESS;
 }
@@ -45,12 +41,17 @@ void DumpBytes(void* pData, int32_t byteLen) {
     uint8_t* byteData = (uint8_t*) pData;
     for (i = 0; i < byteLen; i++) {
         uint8_t byte = byteData[i];
-        printf("The byte is: %02" PRIx8 "!\n", byte);
+        printf("The byte is: %02" PRIx8 "\n", byte);
     }
 
-    printf("The %d bytes starting at %p are:\n", byteLen, byteData);
+    printf("The %d bytes starting at %p are: __\n", byteLen, byteData);
 }
 
-void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int32_t arrayLen) {
-
+void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int arrayLen) {
+    DumpBytes(arr1, sizeof(arr1));
+    int i;
+    for (i = 0; i < arrayLen; i++) {
+        // Sorting not implemented yet
+        arr2[i] = arr1[i];
+    }
 }
