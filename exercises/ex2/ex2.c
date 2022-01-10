@@ -39,12 +39,13 @@ int main(int argc, char* argv[]) {
 void DumpBytes(void* pData, int32_t byteLen) {
     int i;
     uint8_t* byteData = (uint8_t*) pData;
+
+    printf("The %d bytes starting at %p are:", byteLen, byteData);
     for (i = 0; i < byteLen; i++) {
         uint8_t byte = byteData[i];
-        printf("The byte is: %02" PRIx8 "\n", byte);
+        printf(" %02" PRIx8, byte);
     }
-
-    printf("The %d bytes starting at %p are: __\n", byteLen, byteData);
+    printf("\n");
 }
 
 void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int arrayLen) {
