@@ -26,6 +26,10 @@ LinkedList* LinkedList_Allocate(void) {
   Verify333(ll != NULL);
 
   // STEP 1: initialize the newly allocated record structure.
+  // WIP
+  ll->num_elements = 0;
+  ll->head = NULL;
+  ll->tail = NULL;
 
   // Return our newly minted linked list.
   return ll;
@@ -39,6 +43,15 @@ void LinkedList_Free(LinkedList *list,
   // STEP 2: sweep through the list and free all of the nodes' payloads
   // (using the payload_free_function supplied as an argument) and
   // the nodes themselves.
+  // WIP
+  LinkedListNode *ll_node = list->head;
+  while (ll_node) {
+    LinkedListNode *current_node = ll_node;
+    LLPayload_t payload = ll_node->payload;
+    payload_free_function(payload);
+    ll_node = ll_node->next;
+    free(current_node);
+  } 
 
   // free the LinkedList
   free(list);
@@ -68,6 +81,12 @@ void LinkedList_Push(LinkedList *list, LLPayload_t payload) {
     list->num_elements = 1;
   } else {
     // STEP 3: typical case; list has >=1 elements
+    // WIP
+    LinkedListNode *head_ptr = list->head;
+    ln->prev = NULL;
+    ln->next = head_ptr;
+    list->head = ln;
+    list->num_elements += 1;
   }
 }
 
