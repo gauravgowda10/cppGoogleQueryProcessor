@@ -8,7 +8,7 @@ Copyright 2022 Arjun Srivastava
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h> 
+#include <inttypes.h>
 
 /*
 Takes in an array of bytes and a byte length and prints out the length, 
@@ -20,6 +20,11 @@ void DumpBytes(void* pData, int32_t byteLen);
 Sorts and copies contents of arr1 into arr2 using insertion sort
 */
 void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int arrayLen);
+
+/*
+Insertion sort on input array
+*/
+void insertionSort(uint8_t arr[], int n);
 
 int main(int argc, char* argv[]) {
   int32_t int_val = 1;
@@ -52,7 +57,20 @@ void CopyAndSort(uint8_t arr1[], uint8_t arr2[], int arrayLen) {
     DumpBytes(arr1, sizeof(arr1));
     int i;
     for (i = 0; i < arrayLen; i++) {
-        // Sorting not implemented yet
         arr2[i] = arr1[i];
+    }
+    insertionSort(arr2, arrayLen);
+}
+
+void insertionSort(uint8_t arr[], int n) {
+    int i, key, j;
+    for (i = 1; i < n; i++) {
+        key = arr[i];
+        j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
     }
 }
