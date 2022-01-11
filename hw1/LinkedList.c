@@ -83,6 +83,7 @@ void LinkedList_Push(LinkedList *list, LLPayload_t payload) {
     // STEP 3: typical case; list has >=1 elements
     // WIP
     LinkedListNode *head_ptr = list->head;
+    head_ptr->prev = ln;
     ln->prev = NULL;
     ln->next = head_ptr;
     list->head = ln;
@@ -100,6 +101,31 @@ bool LinkedList_Pop(LinkedList *list, LLPayload_t *payload_ptr) {
   // and (b) the general case of a list with >=2 elements in it.
   // Be sure to call free() to deallocate the memory that was
   // previously allocated by LinkedList_Push().
+  // WIP
+  if (list->num_elements == 0) {
+    // Degenerate case; list is currently empty
+    Verify333(list->head == NULL);
+    Verify333(list->tail == NULL);
+    return false;
+  } else if (list->num_elements == 1) {
+    list->num_elements = 0;
+    LinkedListNode *head_ptr = list->head;
+    *payload_ptr = head_ptr->payload;
+    head_ptr->next = NULL;
+    head_ptr->prev = NULL;
+    free(head_ptr);
+    list->head = NULL;
+    list->tail = NULL;
+  } else {
+    list->num_elements -= 1;
+    LinkedListNode *head_ptr = list->head;
+    list->head = head_ptr->next;
+    list->head->prev = NULL;
+    *payload_ptr = head_ptr->payload;
+    head_ptr->next = NULL;
+    head_ptr->prev = NULL;
+    free(head_ptr);
+  }
 
   return true;  // you may need to change this return value
 }
@@ -110,6 +136,30 @@ void LinkedList_Append(LinkedList *list, LLPayload_t payload) {
   // STEP 5: implement LinkedList_Append.  It's kind of like
   // LinkedList_Push, but obviously you need to add to the end
   // instead of the beginning.
+  // WIP
+
+  // Allocate space for the new node.
+  LinkedListNode *ln = (LinkedListNode *) malloc(sizeof(LinkedListNode));
+  Verify333(ln != NULL);
+
+  // Set the payload
+  ln->payload = payload;
+
+  if (list->num_elements == 0) {
+    // Degenerate case; list is currently empty
+    Verify333(list->head == NULL);
+    Verify333(list->tail == NULL);
+    ln->next = ln->prev = NULL;
+    list->head = list->tail = ln;
+    list->num_elements = 1;
+  } else {
+    ln->prev = list->tail;
+    list->tail->next = ln;
+    ln->next = NULL;
+    list->tail = ln;
+    list->num_elements += 1;
+  }
+
 }
 
 void LinkedList_Sort(LinkedList *list, bool ascending,
@@ -229,6 +279,30 @@ bool LinkedList_Slice(LinkedList *list, LLPayload_t *payload_ptr) {
   Verify333(list != NULL);
 
   // STEP 8: implement LinkedList_Slice.
+  // WIP
+  if (list->num_elements == 0) {
+    // Degenerate case; list is currently empty
+    Verify333(list->head == NULL);
+    Verify333(list->tail == NULL);
+    return false;
+  } else if (list->num_elements == 1) {
+    list->num_elements = 0;
+    LinkedListNode *head_ptr = list->head;
+    *payload_ptr = head_ptr->payload;
+    head_ptr->next = NULL;
+    head_ptr->prev = NULL;
+    free(head_ptr);
+    list->head = NULL;
+    list->tail = NULL;
+  } else {
+    list->num_elements -= 1;
+    LinkedListNode *tail_ptr = list->tail;
+    tail_ptr->prev->next = NULL;
+    list->tail = tail_ptr->prev;
+    tail_ptr->prev = NULL;
+    *payload_ptr = tail_ptr->payload;
+    free(tail_ptr);
+  }
 
   return true;  // you may need to change this return value
 }
