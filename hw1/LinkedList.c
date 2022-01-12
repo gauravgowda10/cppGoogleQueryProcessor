@@ -26,7 +26,7 @@ LinkedList* LinkedList_Allocate(void) {
   Verify333(ll != NULL);
 
   // STEP 1: initialize the newly allocated record structure.
-  
+
   ll->num_elements = 0;
   ll->head = NULL;
   ll->tail = NULL;
@@ -43,7 +43,7 @@ void LinkedList_Free(LinkedList *list,
   // STEP 2: sweep through the list and free all of the nodes' payloads
   // (using the payload_free_function supplied as an argument) and
   // the nodes themselves.
-  
+
   LinkedListNode *ll_node = list->head;
   while (ll_node) {
     LinkedListNode *current_node = ll_node;
@@ -51,7 +51,7 @@ void LinkedList_Free(LinkedList *list,
     payload_free_function(payload);
     ll_node = ll_node->next;
     free(current_node);
-  } 
+  }
 
   // free the LinkedList
   free(list);
@@ -81,7 +81,7 @@ void LinkedList_Push(LinkedList *list, LLPayload_t payload) {
     list->num_elements = 1;
   } else {
     // STEP 3: typical case; list has >=1 elements
-    
+
     LinkedListNode *head_ptr = list->head;
     head_ptr->prev = ln;
     ln->prev = NULL;
@@ -101,7 +101,7 @@ bool LinkedList_Pop(LinkedList *list, LLPayload_t *payload_ptr) {
   // and (b) the general case of a list with >=2 elements in it.
   // Be sure to call free() to deallocate the memory that was
   // previously allocated by LinkedList_Push().
-  
+
   if (list->num_elements == 0) {
     // Degenerate case; list is currently empty
     Verify333(list->head == NULL);
@@ -136,7 +136,7 @@ void LinkedList_Append(LinkedList *list, LLPayload_t payload) {
   // STEP 5: implement LinkedList_Append.  It's kind of like
   // LinkedList_Push, but obviously you need to add to the end
   // instead of the beginning.
-  
+
 
   // Allocate space for the new node.
   LinkedListNode *ln = (LinkedListNode *) malloc(sizeof(LinkedListNode));
@@ -159,7 +159,6 @@ void LinkedList_Append(LinkedList *list, LLPayload_t payload) {
     list->tail = ln;
     list->num_elements += 1;
   }
-
 }
 
 void LinkedList_Sort(LinkedList *list, bool ascending,
@@ -283,19 +282,16 @@ bool LLIterator_Remove(LLIterator *iter,
     iter->node = NULL;
     return false;
   } else if (ll_node == ll->head) {
-    printf("head\n");
     iter->node = ll_node->next;
     ll->head = iter->node;
     iter->node->prev = NULL;
     free(ll_node);
   } else if (ll_node == ll->tail) {
-    printf("tail\n");
     ll->tail = ll_node->prev;
     ll->tail->next = NULL;
     iter->node = ll->tail;
     free(ll_node);
   } else {
-    printf("middle\n");
     iter->node = ll_node->next;
     ll_node->prev->next = ll_node->next;
     iter->node->prev = ll_node->prev;
@@ -314,7 +310,7 @@ bool LinkedList_Slice(LinkedList *list, LLPayload_t *payload_ptr) {
   Verify333(list != NULL);
 
   // STEP 8: implement LinkedList_Slice.
-  
+
   if (list->num_elements == 0) {
     // Degenerate case; list is currently empty
     Verify333(list->head == NULL);
