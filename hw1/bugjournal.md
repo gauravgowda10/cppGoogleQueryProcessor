@@ -24,13 +24,15 @@
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
-- The order of how I was setting 
+- While attempting to set the pointers to the nodes before and after the node to be removed, I had
+updated the next and previous nodes in the incorrect order. This was causing the output pointer to point
+to the node' next next node instead, and fixing the order solving my issue.
 
 
 # Bug 3
 
 ## A) How is your program acting differently than you expect it to?
-- 
+- Segmentation fault at line 43 of HashTable.c
 
 ## B) Brainstorm a few possible causes of the bug
 - 
@@ -38,4 +40,4 @@
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
-- 
+- Cast the address to to LL_Payload_t* 

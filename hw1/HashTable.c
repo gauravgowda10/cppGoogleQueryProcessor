@@ -36,23 +36,25 @@ int HashKeyToBucketNum(HashTable *ht, HTKey_t key) {
 static void LLNoOpFree(LLPayload_t freeme) { }
 static void HTNoOpFree(HTValue_t freeme) { }
 
-HTKeyValue_t* Chain_FindRemoveKey(LinkedList *chain, HTKeyValue_t* keyvalue, bool remove) {
+// Returns pointer to (key, value) in a chain and optionally removes it
+bool Chain_FindRemoveKey(LinkedList *chain, HTKey_t key, HTKeyValue_t* keyvalue, bool remove) {
   LLIterator *chain_iter = LLIterator_Allocate(chain);
-  HTKeyValue_t *payload = NULL;
+  HTKeyValue_t* payload = NULL;
   while (LLIterator_IsValid(chain_iter)) {
-    LLIterator_Get(chain_iter, (LLPayload_t*) &payload);
-    if (keyvalue == (HTKeyValue_t*) payload) {
+    LLIterator_Get(chain_iter, (LLPayload_t*) &payload); 
+    if (payload->key == key) {
+      *keyvalue = *payload;
       if (remove) {
-        // LLIterator_Remove(chain_iter, &free);
+        LLIterator_Remove(chain_iter, &free);
       }
-      return (HTKeyValue_t*) payload;
+      LLIterator_Free(chain_iter);
+      return true;
     }
     LLIterator_Next(chain_iter);
   }
   LLIterator_Free(chain_iter);
-  return NULL;  // If keyvalue wasn't found
+  return false;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 // HashTable implementation.
 
@@ -152,14 +154,17 @@ bool HashTable_Insert(HashTable *table,
   // and optionally remove a key within a chain, rather than putting
   // all that logic inside here.  You might also find that your helper
   // can be reused in steps 2 and 3.
-  HTKeyValue_t *keyvalue = Chain_FindRemoveKey(chain, &newkeyvalue, false);
-  if (keyvalue) { // If we find the key value
-    
-    return true;
-  } else { // If we don't find the key value
-    LinkedList_Append(chain, &newkeyvalue);
-    return false;
+
+  HTKeyValue_t *payload = (HTKeyValue_t*) malloc(sizeof(HTKeyValue_t));
+  *payload = newkeyvalue;
+
+  bool found = Chain_FindRemoveKey(chain, payload->key, oldkeyvalue, true);
+
+  LinkedList_Append(chain, payload);
+  if (!found) {
+    table->num_elements++;
   }
+  return found;
 }
 
 bool HashTable_Find(HashTable *table,
@@ -167,9 +172,18 @@ bool HashTable_Find(HashTable *table,
                     HTKeyValue_t *keyvalue) {
   Verify333(table != NULL);
 
+  int bucket;
+  LinkedList *chain;
+
   // STEP 2: implement HashTable_Find.
 
-  return false;  // you may need to change this return value
+  // Calculate which bucket and chain we're looking in.
+  bucket = HashKeyToBucketNum(table, key);
+  chain = table->buckets[bucket];
+
+  bool found = Chain_FindRemoveKey(chain, key, keyvalue, false);
+
+  return found;  // you may need to change this return value
 }
 
 bool HashTable_Remove(HashTable *table,
@@ -178,8 +192,18 @@ bool HashTable_Remove(HashTable *table,
   Verify333(table != NULL);
 
   // STEP 3: implement HashTable_Remove.
+  int bucket;
+  LinkedList *chain;
 
-  return 0;  // you may need to change this return value
+  // Calculate which bucket and chain we're removing an element from.
+  bucket = HashKeyToBucketNum(table, key);
+  chain = table->buckets[bucket];
+
+  bool found = Chain_FindRemoveKey(chain, key, keyvalue, true);
+  if (found) {
+    table->num_elements--;
+  }
+  return found;  // you may need to change this return value
 }
 
 
