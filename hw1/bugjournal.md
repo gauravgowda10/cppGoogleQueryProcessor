@@ -20,7 +20,7 @@
 
 ## B) Brainstorm a few possible causes of the bug
 - It seems to be one full pointer address off, so I assume this issue is due to how I am updating the various pointers.
-- 
+- I verified that there is a pointer that points to the correct address, so I must be setting them in the wrong order.
 - 
 
 ## C) How you fixed the bug and why the fix was necessary

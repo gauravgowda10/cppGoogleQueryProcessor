@@ -255,22 +255,50 @@ bool HTIterator_IsValid(HTIterator *iter) {
   Verify333(iter != NULL);
 
   // STEP 4: implement HTIterator_IsValid.
-
+  if (iter->bucket_idx == INVALID_IDX) {
+    return false;
+  }
   return true;  // you may need to change this return value
 }
 
 bool HTIterator_Next(HTIterator *iter) {
   Verify333(iter != NULL);
+  int new_bucket_idx = INVALID_IDX;
 
   // STEP 5: implement HTIterator_Next.
+  LLIterator* ll_iter = iter->bucket_it;
+
+  bool next = LLIterator_Next(ll_iter); 
+
+  // If we are at the end of a LinkedList
+  if (!next) {
+    new_bucket_idx = iter->bucket_idx + 1;
+    // If there are no more buckets left, make the iterator invalid
+    if (new_bucket_idx >= iter->ht->num_buckets) {
+      iter->bucket_idx = INVALID_IDX;
+      return next;
+    } else { // There are buckets left, so advance to the next bucket
+      LinkedList* ll = iter->ht->buckets[new_bucket_idx];
+      LLIterator_Free(ll_iter);
+      LLIterator* new_iter = LLIterator_Allocate(ll);
+      iter->bucket_it = new_iter;
+      iter->bucket_idx = new_bucket_idx;
+    }
+  }
 
   return true;  // you may need to change this return value
 }
 
 bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
   Verify333(iter != NULL);
-
   // STEP 6: implement HTIterator_Get.
+
+  if (!HTIterator_IsValid(iter) || iter->ht->num_elements == 0) {
+    return false;
+  }
+  
+  LLIterator* ll_iter = iter->bucket_it;
+  LLIterator_Get(ll_iter, (LLPayload_t*) keyvalue);
 
   return true;  // you may need to change this return value
 }
