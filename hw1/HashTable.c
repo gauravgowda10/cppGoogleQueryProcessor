@@ -37,11 +37,12 @@ static void LLNoOpFree(LLPayload_t freeme) { }
 static void HTNoOpFree(HTValue_t freeme) { }
 
 // Returns pointer to (key, value) in a chain and optionally removes it
-static bool Chain_FindRemoveKey(LinkedList *chain, HTKey_t key, HTKeyValue_t* keyvalue, bool remove) {
+static bool Chain_FindRemoveKey(LinkedList *chain, HTKey_t key,
+            HTKeyValue_t* keyvalue, bool remove) {
   LLIterator *chain_iter = LLIterator_Allocate(chain);
   HTKeyValue_t* payload = NULL;
   while (LLIterator_IsValid(chain_iter)) {
-    LLIterator_Get(chain_iter, (LLPayload_t*) &payload); 
+    LLIterator_Get(chain_iter, (LLPayload_t*) &payload);
     if (payload->key == key) {
       *keyvalue = *payload;
       if (remove) {
@@ -183,7 +184,7 @@ bool HashTable_Find(HashTable *table,
 
   bool found = Chain_FindRemoveKey(chain, key, keyvalue, false);
 
-  return found; 
+  return found;
 }
 
 bool HashTable_Remove(HashTable *table,
@@ -203,7 +204,7 @@ bool HashTable_Remove(HashTable *table,
   if (found) {
     table->num_elements--;
   }
-  return found; 
+  return found;
 }
 
 
@@ -258,7 +259,7 @@ bool HTIterator_IsValid(HTIterator *iter) {
   if (iter->bucket_idx == INVALID_IDX || iter->ht->num_elements == 0) {
     return false;
   }
-  return true; 
+  return true;
 }
 
 bool HTIterator_Next(HTIterator *iter) {
@@ -283,7 +284,7 @@ bool HTIterator_Next(HTIterator *iter) {
         LLIterator_Free(iter->bucket_it);
         iter->bucket_idx = i;
         iter->bucket_it = LLIterator_Allocate(iter->ht->buckets[i]);
-        return true;  // If we find another non-empty chain
+        return true;  // If we find a valid chain, we can advance the iterator
       }
     }
     // If we do not find a non-empty chain, the Iterator is now invalid
@@ -291,7 +292,7 @@ bool HTIterator_Next(HTIterator *iter) {
     return false;
   }
 
-  return true; 
+  return true;
 }
 
 bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
@@ -306,7 +307,7 @@ bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
   LLIterator_Get(iter->bucket_it, (LLPayload_t*) &payload);
   *keyvalue = *payload;
 
-  return true; 
+  return true;
 }
 
 bool HTIterator_Remove(HTIterator *iter, HTKeyValue_t *keyvalue) {

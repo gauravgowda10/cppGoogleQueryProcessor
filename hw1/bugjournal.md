@@ -4,9 +4,8 @@
 - LinkedList_Pop is not correctly setting the payload pointer
 
 ## B) Brainstorm a few possible causes of the bug
-- 
-- 
-- 
+- I don't fully understand when to use addresses (&), and I think I am using them incorrectly here
+- &pointer would return the address of the pointer itself, so I don't want to be using the value like that.
 
 ## C) How you fixed the bug and why the fix was necessary
 - I had to dereference the payload pointer before setting it equal to the nodes payload. This is because I am supposed to be setting the value of the pointer to the node's payload value, and not the address.
@@ -33,9 +32,9 @@ to the node' next next node instead, and fixing the order solving my issue.
 - Segmentation fault in my HTIterator_Get() function
 
 ## B) Brainstorm a few possible causes of the bug
-- 
+- I think there must be a stray pointer somewhere that is pointing to data that was free'd by the test suite.
 - 
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
-- Turns out I was using LLIterator_Get() incorrectly. I was setting the 
+- Turns out I was using LLIterator_Get() incorrectly. HTIterator_Get() has an output parameter, "*keyvalue", which is supposed to point to a copy of the gotten payload. I was using LLIterator_Get() to make keyvalue POINT to the payload, when in reality I needed to dereference keyvalue and set it equal to the dereferenced result from LLIterator_Get(). Now, keyvalue isn't concerned with the payload's address, and the memory leak was fixed.
