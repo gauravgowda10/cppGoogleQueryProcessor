@@ -233,13 +233,13 @@ TEST_F(Test_HashTable, Iterator) {
 
     ASSERT_TRUE(HTIterator_IsValid(it));
     ASSERT_TRUE(HTIterator_Get(it, &oldkv));
-    printf("REACHED\n");
 
     // Verify that we've never seen this key before, then increment the
     // number of times we've seen it.
     htkey = static_cast<int>(oldkv.key);
     ASSERT_EQ(0, num_times_seen[htkey]);
     num_times_seen[htkey]++;
+
     // Verify that this is the value we previously inserted.
     op = static_cast<Payload *>(oldkv.value);
     ASSERT_EQ(kMagicNum, op->magic_num);
@@ -255,7 +255,6 @@ TEST_F(Test_HashTable, Iterator) {
       ASSERT_TRUE(HTIterator_IsValid(it));
     }
   }
-  printf("NOT REACHED\n");
   for (i = 0; i < 100; i++) {
     ASSERT_EQ(1, num_times_seen[i]);  // verify each was seen exactly once.
   }

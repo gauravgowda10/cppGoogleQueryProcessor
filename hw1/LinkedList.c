@@ -127,7 +127,7 @@ bool LinkedList_Pop(LinkedList *list, LLPayload_t *payload_ptr) {
     free(head_ptr);
   }
 
-  return true;  // you may need to change this return value
+  return true;
 }
 
 void LinkedList_Append(LinkedList *list, LLPayload_t payload) {
@@ -240,7 +240,7 @@ bool LLIterator_Next(LLIterator *iter) {
     return false;
   }
 
-  return true;  // you may need to change this return value
+  return true;
 }
 
 void LLIterator_Get(LLIterator *iter, LLPayload_t *payload) {
@@ -295,7 +295,7 @@ bool LLIterator_Remove(LLIterator *iter,
     iter->node->prev = ll_node->prev;
   }
   free(ll_node);
-  return true;  // you may need to change this return value
+  return true;
 }
 
 
@@ -332,7 +332,7 @@ bool LinkedList_Slice(LinkedList *list, LLPayload_t *payload_ptr) {
     free(tail_ptr);
   }
 
-  return true;  // you may need to change this return value
+  return true;
 }
 
 void LLIterator_Rewind(LLIterator *iter) {

@@ -183,7 +183,7 @@ bool HashTable_Find(HashTable *table,
 
   bool found = Chain_FindRemoveKey(chain, key, keyvalue, false);
 
-  return found;  // you may need to change this return value
+  return found; 
 }
 
 bool HashTable_Remove(HashTable *table,
@@ -203,7 +203,7 @@ bool HashTable_Remove(HashTable *table,
   if (found) {
     table->num_elements--;
   }
-  return found;  // you may need to change this return value
+  return found; 
 }
 
 
@@ -258,37 +258,40 @@ bool HTIterator_IsValid(HTIterator *iter) {
   if (iter->bucket_idx == INVALID_IDX || iter->ht->num_elements == 0) {
     return false;
   }
-  return true;  // you may need to change this return value
+  return true; 
 }
 
 bool HTIterator_Next(HTIterator *iter) {
   Verify333(iter != NULL);
 
   // STEP 5: implement HTIterator_Next.
-  LLIterator* ll_iter = iter->bucket_it;
+  if (!HTIterator_IsValid(iter) || !iter->bucket_it) {
+    return false;
+  }
 
-  bool next = LLIterator_Next(ll_iter); 
-  int new_bucket_idx = INVALID_IDX;
+  LLIterator* ll_iter = iter->bucket_it;
+  bool next = LLIterator_Next(ll_iter);
 
   // If we are at the end of a LinkedList
   if (!next) {
-    // Find the next bucket with space left
-
-
+    int new_bucket_idx = INVALID_IDX;
+    // Find the next non-empty chain
     new_bucket_idx = iter->bucket_idx + 1;
-    // If there are no more buckets left, make the iterator invalid
-    if (new_bucket_idx >= iter->ht->num_buckets) {
-      iter->bucket_idx = INVALID_IDX;
-      return next;
-    } else { // There are buckets left, so advance to the next bucket
-      LinkedList* ll = iter->ht->buckets[new_bucket_idx];
-      LLIterator_Free(ll_iter);
-      iter->bucket_it = LLIterator_Allocate(ll);
-      iter->bucket_idx = new_bucket_idx;
+    int i;
+    for (i = new_bucket_idx; i < iter->ht->num_buckets; i++) {
+      if (LinkedList_NumElements(iter->ht->buckets[i]) > 0) {
+        LLIterator_Free(iter->bucket_it);
+        iter->bucket_idx = i;
+        iter->bucket_it = LLIterator_Allocate(iter->ht->buckets[i]);
+        return true;  // If we find another non-empty chain
+      }
     }
+    // If we do not find a non-empty chain, the Iterator is now invalid
+    iter->bucket_idx = INVALID_IDX;
+    return false;
   }
 
-  return true;  // you may need to change this return value
+  return true; 
 }
 
 bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
@@ -299,9 +302,11 @@ bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
     return false;
   }
 
-  LLIterator_Get(iter->bucket_it, (LLPayload_t*) &keyvalue);
+  HTKeyValue_t* payload;
+  LLIterator_Get(iter->bucket_it, (LLPayload_t*) &payload);
+  *keyvalue = *payload;
 
-  return true;  // you may need to change this return value
+  return true; 
 }
 
 bool HTIterator_Remove(HTIterator *iter, HTKeyValue_t *keyvalue) {
