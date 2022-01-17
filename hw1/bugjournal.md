@@ -23,7 +23,7 @@
 ## C) How you fixed the bug and why the fix was necessary
 - While attempting to set the pointers to the nodes before and after the node to be removed, I had
 updated the next and previous nodes in the incorrect order. This was causing the output pointer to point
-to the node' next next node instead, and fixing the order solving my issue.
+to the node' next next node instead, and fixing the order solved my issue.
 
 
 # Bug 3
@@ -33,8 +33,7 @@ to the node' next next node instead, and fixing the order solving my issue.
 
 ## B) Brainstorm a few possible causes of the bug
 - I think there must be a stray pointer somewhere that is pointing to data that was free'd by the test suite.
-- 
-- 
+- After some print debugging, the get() or next() methods must be where the issue is occurring- 
 
 ## C) How you fixed the bug and why the fix was necessary
 - Turns out I was using LLIterator_Get() incorrectly. HTIterator_Get() has an output parameter, "*keyvalue", which is supposed to point to a copy of the gotten payload. I was using LLIterator_Get() to make keyvalue POINT to the payload, when in reality I needed to dereference keyvalue and set it equal to the dereferenced result from LLIterator_Get(). Now, keyvalue isn't concerned with the payload's address, and the memory leak was fixed.
