@@ -37,7 +37,7 @@ static void LLNoOpFree(LLPayload_t freeme) { }
 static void HTNoOpFree(HTValue_t freeme) { }
 
 // Returns pointer to (key, value) in a chain and optionally removes it
-bool Chain_FindRemoveKey(LinkedList *chain, HTKey_t key, HTKeyValue_t* keyvalue, bool remove) {
+static bool Chain_FindRemoveKey(LinkedList *chain, HTKey_t key, HTKeyValue_t* keyvalue, bool remove) {
   LLIterator *chain_iter = LLIterator_Allocate(chain);
   HTKeyValue_t* payload = NULL;
   while (LLIterator_IsValid(chain_iter)) {
@@ -255,7 +255,7 @@ bool HTIterator_IsValid(HTIterator *iter) {
   Verify333(iter != NULL);
 
   // STEP 4: implement HTIterator_IsValid.
-  if (iter->bucket_idx == INVALID_IDX) {
+  if (iter->bucket_idx == INVALID_IDX || iter->ht->num_elements == 0) {
     return false;
   }
   return true;  // you may need to change this return value
@@ -263,15 +263,18 @@ bool HTIterator_IsValid(HTIterator *iter) {
 
 bool HTIterator_Next(HTIterator *iter) {
   Verify333(iter != NULL);
-  int new_bucket_idx = INVALID_IDX;
 
   // STEP 5: implement HTIterator_Next.
   LLIterator* ll_iter = iter->bucket_it;
 
   bool next = LLIterator_Next(ll_iter); 
+  int new_bucket_idx = INVALID_IDX;
 
   // If we are at the end of a LinkedList
   if (!next) {
+    // Find the next bucket with space left
+
+
     new_bucket_idx = iter->bucket_idx + 1;
     // If there are no more buckets left, make the iterator invalid
     if (new_bucket_idx >= iter->ht->num_buckets) {
@@ -280,8 +283,7 @@ bool HTIterator_Next(HTIterator *iter) {
     } else { // There are buckets left, so advance to the next bucket
       LinkedList* ll = iter->ht->buckets[new_bucket_idx];
       LLIterator_Free(ll_iter);
-      LLIterator* new_iter = LLIterator_Allocate(ll);
-      iter->bucket_it = new_iter;
+      iter->bucket_it = LLIterator_Allocate(ll);
       iter->bucket_idx = new_bucket_idx;
     }
   }
@@ -296,9 +298,8 @@ bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
   if (!HTIterator_IsValid(iter) || iter->ht->num_elements == 0) {
     return false;
   }
-  
-  LLIterator* ll_iter = iter->bucket_it;
-  LLIterator_Get(ll_iter, (LLPayload_t*) keyvalue);
+
+  LLIterator_Get(iter->bucket_it, (LLPayload_t*) &keyvalue);
 
   return true;  // you may need to change this return value
 }

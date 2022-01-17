@@ -285,19 +285,16 @@ bool LLIterator_Remove(LLIterator *iter,
     iter->node = ll_node->next;
     ll->head = iter->node;
     iter->node->prev = NULL;
-    free(ll_node);
   } else if (ll_node == ll->tail) {
     ll->tail = ll_node->prev;
     ll->tail->next = NULL;
     iter->node = ll->tail;
-    free(ll_node);
   } else {
     iter->node = ll_node->next;
     ll_node->prev->next = ll_node->next;
     iter->node->prev = ll_node->prev;
-    free(ll_node);
   }
-
+  free(ll_node);
   return true;  // you may need to change this return value
 }
 
