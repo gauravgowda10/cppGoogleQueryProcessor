@@ -1,3 +1,10 @@
+/*
+Arjun Srivastava
+arj1@uw.edu
+CSE 333
+Copyright 2022 Arjun Srivastava
+*/
+
 #include "ro_file.h"
 
 #include <stdlib.h>
@@ -49,6 +56,11 @@ RO_FILE* ro_open(char* filename) {
 
   // 2. Get the file descriptor for the file
   file->fd = open(filename, O_RDONLY);
+  if (file->fd == -1) {
+    perror("File open failed");
+    exit(EXIT_FAILURE);
+}
+
 
   // 3. Allocate the internal buffer
   file->buf = (char*) malloc(RO_FILE_BUF_LEN);

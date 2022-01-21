@@ -1,7 +1,17 @@
+/*
+Arjun Srivastava
+arj1@uw.edu
+CSE 333
+Copyright 2022 Arjun Srivastava
+*/
+
 #include <stdio.h>    // for snprintf
 #include <stdlib.h>   // for EXIT_SUCCESS, NULL
 #include <string.h>   // for strrchr, strcmp, strlen
 #include <stdbool.h>  // for bool
+#include <dirent.h>
+#include <errno.h>
+#include <unistd.h> 
 
 #include "ro_file.h"
 
@@ -30,11 +40,44 @@ void Args();
  *   Eventually reading the files with ro_file module.
  */
 int main(int argc, char** argv) {
-  char* dirname;
   if (argc != 2) {
     Usage();
     Args();
+    exit(EXIT_FAILURE);
   }
+  char* dirname;
+  DIR* dir;
+  struct dirent* entry;
+
+  // Check for errors opening directory
+  dirname = argv[1];
+  dir = opendir(dirname);
+  if (!dir) {
+    perror("Dir open failed");
+    exit(EXIT_FAILURE);
+  }
+
+    while((entry = readdir(dir))) {
+      FILE* fp;
+      char* file;
+      // Found a directory, but ignore . and ..
+      if(strcmp(".", entry->d_name) == 0 ||
+          strcmp("..", entry->d_name) == 0) {
+            continue;
+          }
+        
+        // Print file contents to stdout
+        if (IsTxtFile(entry->d_name)) {
+          file = Concatenate(dirname, entry->d_name);
+          fp = fopen(file, "r");
+          // CHECK FOR OPEN ERROR
+          printf("NAME: %s\n", entry->d_name); // for testing
+          // // Read file to buffer, write buffer to stdout
+
+          fclose(fp);
+        }
+    }
+    closedir(dir);
 
   return EXIT_SUCCESS;
 }
