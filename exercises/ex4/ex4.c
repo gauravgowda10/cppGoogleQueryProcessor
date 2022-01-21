@@ -53,33 +53,34 @@ int main(int argc, char** argv) {
   dirname = argv[1];
   dir = opendir(dirname);
   if (!dir) {
-    perror("Dir open failed");
+    perror("Could not open directory");
     exit(EXIT_FAILURE);
   }
 
     while((entry = readdir(dir))) {
-      FILE* fp;
+      RO_FILE* fp;
       char* file;
       // Found a directory, but ignore . and ..
       if(strcmp(".", entry->d_name) == 0 ||
           strcmp("..", entry->d_name) == 0) {
             continue;
           }
-        
         // Print file contents to stdout
         if (IsTxtFile(entry->d_name)) {
           file = Concatenate(dirname, entry->d_name);
-          fp = fopen(file, "r");
-          // CHECK FOR OPEN ERROR
+          fp = ro_open(file);
+          if (!fp) {
+            exit(EXIT_FAILURE);
+          }
           printf("NAME: %s\n", entry->d_name); // for testing
           // // Read file to buffer, write buffer to stdout
 
-          fclose(fp);
+          ro_close(fp);
         }
     }
     closedir(dir);
 
-  return EXIT_SUCCESS;
+  exit(EXIT_SUCCESS);
 }
 
 
@@ -112,7 +113,7 @@ char* Concatenate(char* dirname, char* filename) {
 }
 
 void Usage() {
-  fprintf(stderr, "Usage: ./ex4 [dir_name]\n");
+  fprintf(stderr, "Usage: ./ex4 <dir_name>\n");
 }
 
 void Args() {
