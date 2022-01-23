@@ -78,17 +78,17 @@ char* ReadFileToString(const char* file_name, int* size) {
   // STEP 2.
   // Make sure this is a "regular file" and not a directory or something else
   // (use the S_ISREG macro described in "man 2 stat").
-  if (file_stat.st_mode != S_IFREG) {
+  if (!S_ISREG(file_stat.st_mode)) {
     fprintf(stderr, "File is not a regular type\n");
     return NULL;
   }
-
 
   // STEP 3.
   // Attempt to open the file for reading (see also "man 2 open").
   fd = open(file_name, O_RDONLY);
   if (fd == -1) {
     perror("Could not open file\n");
+    return NULL;
   }
 
   // STEP 4.
@@ -110,7 +110,7 @@ char* ReadFileToString(const char* file_name, int* size) {
     if (num_read == -1) {
       if (errno != EINTR && errno != EAGAIN) {
         close(fd);
-        perror("Error reading from file");
+        perror("Error reading from file\n");
         return NULL;
       }
     } else if (num_read == 0) {
@@ -218,10 +218,30 @@ static void InsertContent(HashTable* tab, char* content) {
   // AddWordPosition() helper with appropriate arguments, e.g.,
   // AddWordPosition(tab, wordstart, pos);
 
+  bool in_word = false;
+  DocPositionOffset_t pos = 0;
   while (1) {
-    
-    break;  // you may want to change this
-  }  // end while-loop
+    *cur_ptr = tolower(*cur_ptr);
+    char current_char = *cur_ptr;
+    if (isalpha(current_char)) {
+      if (!in_word) {
+        word_start = cur_ptr;
+        in_word = true;
+      }
+    } else {  // Current char is non alphaneumeric
+      *cur_ptr = '\0';
+      if (word_start && in_word) {
+        AddWordPosition(tab, word_start, word_start - content);
+      }
+      word_start = NULL;
+      in_word = false;
+      if (current_char == '\0') {   // EOF
+        break;
+      }
+    }
+    pos++;
+    cur_ptr++;
+  }
 }
 
 static void AddWordPosition(HashTable* tab, char* word,
@@ -253,11 +273,10 @@ static void AddWordPosition(HashTable* tab, char* word,
     // a new WordPositions structure, and append the new position to its list
     // using a similar ugly hack as right above.
     wp = (WordPositions*) malloc(sizeof(WordPositions));
-    Verify333(wp != NULL);
     wp->word = (char*) malloc(strlen(word) + 1);  // Add space for \0
     strncpy(wp->word, word, strlen(word) + 1);
     wp->positions = LinkedList_Allocate();
-    LinkedList_Append(wp->positions, (LLPayload_t*) pos);
+    LinkedList_Append(wp->positions, (LLPayload_t) (int64_t) pos);
     HTKeyValue_t oldkv;
     kv.key = hash_key;
     kv.value = (HTKeyValue_t*) wp;
