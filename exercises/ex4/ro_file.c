@@ -1,9 +1,7 @@
 /*
-Arjun Srivastava
-arj1@uw.edu
-CSE 333
-Copyright 2022 Arjun Srivastava
-*/
+ * Copyright ©2022 Arjun Srivastava & Gaurav Gowda. All rights reserved.
+ * UW Email: arj1@uw.edu & ggowda@uw.edu
+ */
 
 #include "ro_file.h"
 
@@ -50,7 +48,7 @@ static ssize_t fill_buffer(RO_FILE* file);
 
 /*** FUNCTION DEFINITIONS ***************************************************/
 
-// TODO: Write this function
+// TODO(ggowda & arj1): Write this function
 RO_FILE *ro_open(char *filename) {
   // 1. Allocate a new RO_FILE
   RO_FILE* file = (RO_FILE*) malloc(sizeof(RO_FILE));
@@ -109,19 +107,20 @@ off_t ro_tell(RO_FILE *file) {
   return file->buf_pos + file->buf_index;
 }
 
+// TODO(ggowda & arj1): Write this function
 int ro_seek(RO_FILE *file, off_t offset, int whence) {
   // 1. Check validity of arguments, where applicable.
-  if(file == NULL){
+  if (file == NULL) {
     return 1;
   }
-  
+
   // 2. Seek to specified offset from specified whence using lseek.
   //    No need to check if new position is already in our buffer.
   file->buf_pos = lseek(file->fd, offset, whence);
   if (file->buf_pos == -1) {
     return 1;
   }
-  
+
   // 3. Update our buffer indicators
   file->buf_index = 0;
   file->buf_end = 0;
@@ -129,6 +128,7 @@ int ro_seek(RO_FILE *file, off_t offset, int whence) {
   return 0;
 }
 
+// TODO(ggowda & arj1): Write this function
 int ro_close(RO_FILE *file) {
   // Clean up all RO_FILE resources, returns non-zero on error
   if (file == NULL) {
@@ -142,6 +142,9 @@ int ro_close(RO_FILE *file) {
   return res;
 }
 
+/*** STATIC HELPER FUNCTION DEFINITIONS *************************************/
+
+// TODO(ggowda & arj1): Write this function
 size_t flush_buffer(RO_FILE *file, char *out, int amount) {
   if (file == NULL || out == NULL) {
     return 0;
@@ -152,7 +155,7 @@ size_t flush_buffer(RO_FILE *file, char *out, int amount) {
   //    in the buffer.
   int bytes_flushed = 0;
   int remaining_bytes_unflushed = file->buf_end - file->buf_index;
-  while(bytes_flushed < remaining_bytes_unflushed && bytes_flushed < amount) {
+  while (bytes_flushed < remaining_bytes_unflushed && bytes_flushed < amount) {
     out[bytes_flushed] = file->buf[file->buf_index + bytes_flushed];
     bytes_flushed++;
     remaining_bytes_unflushed = file->buf_end - file->buf_index;
@@ -160,12 +163,12 @@ size_t flush_buffer(RO_FILE *file, char *out, int amount) {
 
   // 2. Advance buffer index by the number of bytes flushed.
   file->buf_index += bytes_flushed;
-  
+
   // 3. Return the number of bytes flushed.
   return bytes_flushed;
-  
 }
 
+// TODO(ggowda & arj1): Write this function
 ssize_t fill_buffer(RO_FILE *file) {
   // NOTES:
   // - For maximum buffering benefit, we are "resetting" the buffer and then
@@ -183,9 +186,10 @@ ssize_t fill_buffer(RO_FILE *file) {
   file->buf_index = 0;
   file->buf_end = 0;
   int bytes_buffered = 0;
- 
+
   do {
-    ssize_t result = read(file->fd, (file->buf) + bytes_buffered, RO_FILE_BUF_LEN - bytes_buffered);
+    ssize_t result = read(file->fd, (file->buf) + bytes_buffered,
+    RO_FILE_BUF_LEN - bytes_buffered);
     // reached the end of file
     if (result == 0) {
       break;

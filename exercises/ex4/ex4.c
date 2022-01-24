@@ -1,9 +1,7 @@
 /*
-Arjun Srivastava
-arj1@uw.edu
-CSE 333
-Copyright 2022 Arjun Srivastava
-*/
+ * Copyright ©2022 Arjun Srivastava & Gaurav Gowda. All rights reserved.
+ * UW Email: arj1@uw.edu & ggowda@uw.edu
+ */
 
 #include <stdio.h>    // for snprintf
 #include <stdlib.h>   // for EXIT_SUCCESS, NULL
