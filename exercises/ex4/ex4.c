@@ -26,7 +26,11 @@ char* Concatenate(char* dirname, char* filename);
 // Usage/Error functions
 void Usage();
 
+// Displays error message when incorrect arguments are given
 void Args();
+
+// Reads file to user-maintained char* buffer
+int Read_File(RO_FILE* fp, char* buf, int filesize);
 
 /*
  * This program:
@@ -57,7 +61,9 @@ int main(int argc, char** argv) {
 
   while ((entry = readdir(dir))) {
     RO_FILE* fp;
-    char* file;
+    int filesize;
+    char* file_name;
+    char* buf;
     // Found a directory, but ignore . and ..
     if (strcmp(".", entry->d_name) == 0 ||
         strcmp("..", entry->d_name) == 0) {
@@ -65,16 +71,25 @@ int main(int argc, char** argv) {
         }
       // Print file contents to stdout
       if (IsTxtFile(entry->d_name)) {
-        file = Concatenate(dirname, entry->d_name);
-        fp = ro_open(file);
+        file_name = Concatenate(dirname, entry->d_name);
+        fp = ro_open(file_name);
         if (!fp) {
+          fprintf(stderr, "Error opening file: %s\n", file_name);
           exit(EXIT_FAILURE);
         }
-        int filesize = ro_seek(fp, 0, SEEK_END);
+        ro_seek(fp, 0, SEEK_END);
+        filesize = ro_tell(fp);
         ro_seek(fp, 0, SEEK_SET);   // Reset file pointer
-        
-        char* buf
-        ro_close(fp);
+        buf = (char*) malloc(filesize);
+        // Read file to buffer
+        if (Read_File(fp, buf, filesize) == -1) {
+          fprintf(stderr, "Error reading from file: %s\n", file_name);
+          exit(EXIT_FAILURE);
+        }
+
+        // Write file to stdout
+        fprintf(stdout, buf);
+        free(buf);
       }
   }
   closedir(dir);
@@ -119,4 +134,21 @@ void Args() {
   printf("This program accepts 1 argument corresponding to a directory name\n");
 }
 
-// Add error message if no txt files found?
+int Read_File(RO_FILE* fp, char* buf, int filesize) {
+  int bytes_read = 0;
+  do {
+    ssize_t result = ro_read(buf + bytes_read,
+    filesize - bytes_read, fp);
+    // reached the end of file
+    if (result == 0) {
+      break;
+    } else if (result < 0 && (errno == EINTR || errno == EAGAIN)) {
+      // reached error, check for error code
+        continue;
+    } else if (errno == EINTR || errno == EAGAIN) {
+      return result;
+    }
+    bytes_read += result;
+  } while (bytes_read < filesize);
+  return bytes_read;
+}

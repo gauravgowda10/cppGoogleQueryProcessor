@@ -1,1 +1,1 @@
-hello this is an other file
+hello this is another file
