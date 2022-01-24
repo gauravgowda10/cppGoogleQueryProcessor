@@ -51,8 +51,7 @@ static ssize_t fill_buffer(RO_FILE* file);
 
 /*** FUNCTION DEFINITIONS ***************************************************/
 
-// TODO: Write this function
-RO_FILE* ro_open(char* filename) {
+RO_FILE *ro_open(char *filename) {
   // 1. Allocate a new RO_FILE
   RO_FILE* file = (RO_FILE*) malloc(sizeof(RO_FILE));
 
@@ -74,7 +73,8 @@ RO_FILE* ro_open(char* filename) {
   return file;
 }
 
-ssize_t ro_read(char* ptr, size_t len, RO_FILE* file) {
+// THIS FUNCTION IS COMPLETED FOR YOU
+ssize_t ro_read(char *ptr, size_t len, RO_FILE *file) {
   // 1. If we have bytes in our internal buffer, flush as many as we can to
   //    'ptr'.
   size_t num_copied_out = flush_buffer(file, ptr, len);
@@ -101,63 +101,71 @@ ssize_t ro_read(char* ptr, size_t len, RO_FILE* file) {
   return num_copied_out;
 }
 
-off_t ro_tell(RO_FILE* file) {
+off_t ro_tell(RO_FILE *file) {
   if (file == NULL) {
     return -1;
   }
+  // Get the current offset into the file
   return file->buf_pos + file->buf_index;
 }
 
-// TODO: Write this function
-int ro_seek(RO_FILE* file, off_t offset, int whence) {
+int ro_seek(RO_FILE *file, off_t offset, int whence) {
   // 1. Check validity of arguments, where applicable.
+  if (file == NULL) {
+    return 1;
+  }
 
   // 2. Seek to specified offset from specified whence using lseek.
   //    No need to check if new position is already in our buffer.
-
-  // 3. Update our buffer indicators
-  
-  if (whence == SEEK_CUR || whence == SEEK_END || whence == SEEK_SET) {
-    file->buf_pos = lseek(file->fd, offset, whence);
-    if (file->buf_pos == -1) {
-      perror("Could not perform seek");
-      return 1;
-    }
-  } else {
+  file->buf_pos = lseek(file->fd, offset, whence);
+  if (file->buf_pos == -1) {
     return 1;
   }
+
+  // 3. Update our buffer indicators
+  file->buf_index = 0;
+  file->buf_end = 0;
+
   return 0;
 }
 
-// TODO: Write this function
-int ro_close(RO_FILE* file) {
+int ro_close(RO_FILE *file) {
   // Clean up all RO_FILE resources, returns non-zero on error
-  close(file->fd);
+  if (file == NULL) {
+    return -1;
+  }
+  // clean up resources,
+  // return non 0 on error
+  int res = close(file->fd);
   free(file->buf);
   free(file);
-  return 0;
+  return res;
 }
 
+size_t flush_buffer(RO_FILE *file, char *out, int amount) {
+  if (file == NULL || out == NULL) {
+    return 0;
+  }
 
-/*** STATIC HELPER FUNCTION DEFINITIONS *************************************/
-
-// TODO: Write this function
-size_t flush_buffer(RO_FILE* file, char* out, int amount) {
   // 1. Copy/flush bytes to 'out' starting from the buffer index. The amount
   //    flushed should be the min of 'amount' and the remaining unflushed bytes
   //    in the buffer.
-  int bytes_to_flush = 0;
-  strncpy(out, file->buf+file->buf_index, bytes_to_flush);
+  int bytes_flushed = 0;
+  int remaining_bytes_unflushed = file->buf_end - file->buf_index;
+  while (bytes_flushed < remaining_bytes_unflushed && bytes_flushed < amount) {
+    out[bytes_flushed] = file->buf[file->buf_index + bytes_flushed];
+    bytes_flushed++;
+    remaining_bytes_unflushed = file->buf_end - file->buf_index;
+  }
 
   // 2. Advance buffer index by the number of bytes flushed.
-  file->buf_index += bytes_to_flush;
+  file->buf_index += bytes_flushed;
 
   // 3. Return the number of bytes flushed.
-  return 0;
+  return bytes_flushed;
 }
 
-// TODO: Write this function
-ssize_t fill_buffer(RO_FILE* file) {
+ssize_t fill_buffer(RO_FILE *file) {
   // NOTES:
   // - For maximum buffering benefit, we are "resetting" the buffer and then
   //   filling it with as much file data as possible, starting from the current
@@ -166,23 +174,32 @@ ssize_t fill_buffer(RO_FILE* file) {
   //   the buffer (i.e., it's okay to re-read them from the file).
   // - You will need to implement a POSIX read loop with all appropriate
   //   return value checking.
-  ssize_t result = 0;
-  off_t filesize = ro_seek(file, 0, SEEK_END) + 1;
-  ro_seek(file, 0, SEEK_SET);  // Reset file pointer
-  int bytes_left = filesize;
-  do {   // Loop until error or file is finished
-    result = read(file->fd, file->buf + (filesize - bytes_left), bytes_left);
-    if (result == -1) {
-      if (errno != EINTR && errno != EAGAIN) {  // Fatal error identified
-        close(file->fd);
-        perror("Error reading from file");
-        return -1;
-      }
-      continue;
-    }
-    bytes_left -= result;
-    file->buf_end += result;
-  } while (result != 0);
+  if (file == NULL) {
+    return -1;
+  }
+  // reset buf_index, buf_pos, and buf_end
+  file->buf_pos += file->buf_index;
+  file->buf_index = 0;
+  file->buf_end = 0;
+  int bytes_buffered = 0;
 
-  return 0;
+  do {
+    ssize_t result = read(file->fd, (file->buf) + bytes_buffered,
+                        RO_FILE_BUF_LEN - bytes_buffered);
+    // reached the end of file
+    if (result == 0) {
+      break;
+    } else if (result < 0 && (errno == EINTR || errno == EAGAIN)) {
+       // reached error, check for error code
+        continue;
+    } else if (errno == EINTR || errno == EAGAIN) {
+      return result;
+    }
+    bytes_buffered += result;
+  } while (bytes_buffered < RO_FILE_BUF_LEN);
+
+  // update buffer status
+  file->buf_end = bytes_buffered;
+  return bytes_buffered;
 }
+

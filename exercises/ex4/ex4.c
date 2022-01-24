@@ -11,7 +11,7 @@ Copyright 2022 Arjun Srivastava
 #include <stdbool.h>  // for bool
 #include <dirent.h>
 #include <errno.h>
-#include <unistd.h> 
+#include <unistd.h>
 
 #include "ro_file.h"
 
@@ -57,28 +57,29 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
 
-    while((entry = readdir(dir))) {
-      RO_FILE* fp;
-      char* file;
-      // Found a directory, but ignore . and ..
-      if(strcmp(".", entry->d_name) == 0 ||
-          strcmp("..", entry->d_name) == 0) {
-            continue;
-          }
-        // Print file contents to stdout
-        if (IsTxtFile(entry->d_name)) {
-          file = Concatenate(dirname, entry->d_name);
-          fp = ro_open(file);
-          if (!fp) {
-            exit(EXIT_FAILURE);
-          }
-          printf("NAME: %s\n", entry->d_name); // for testing
-          // // Read file to buffer, write buffer to stdout
-
-          ro_close(fp);
+  while ((entry = readdir(dir))) {
+    RO_FILE* fp;
+    char* file;
+    // Found a directory, but ignore . and ..
+    if (strcmp(".", entry->d_name) == 0 ||
+        strcmp("..", entry->d_name) == 0) {
+          continue;
         }
-    }
-    closedir(dir);
+      // Print file contents to stdout
+      if (IsTxtFile(entry->d_name)) {
+        file = Concatenate(dirname, entry->d_name);
+        fp = ro_open(file);
+        if (!fp) {
+          exit(EXIT_FAILURE);
+        }
+        int filesize = ro_seek(fp, 0, SEEK_END);
+        ro_seek(fp, 0, SEEK_SET);   // Reset file pointer
+        
+        char* buf
+        ro_close(fp);
+      }
+  }
+  closedir(dir);
 
   exit(EXIT_SUCCESS);
 }
