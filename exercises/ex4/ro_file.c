@@ -12,6 +12,7 @@ Copyright 2022 Arjun Srivastava
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 
 /*** INTERNAL DATA TYPES AND CONSTANTS **************************************/
@@ -120,12 +121,11 @@ int ro_seek(RO_FILE* file, off_t offset, int whence) {
     file->buf_pos = lseek(file->fd, offset, whence);
     if (file->buf_pos == -1) {
       perror("Could not perform seek");
+      return 1;
     }
-    return 1;
   } else {
     return 1;
   }
-
   return 0;
 }
 
@@ -146,9 +146,11 @@ size_t flush_buffer(RO_FILE* file, char* out, int amount) {
   // 1. Copy/flush bytes to 'out' starting from the buffer index. The amount
   //    flushed should be the min of 'amount' and the remaining unflushed bytes
   //    in the buffer.
-  
+  int bytes_to_flush = 0;
+  strncpy(out, file->buf+file->buf_index, bytes_to_flush);
 
   // 2. Advance buffer index by the number of bytes flushed.
+  file->buf_index += bytes_to_flush;
 
   // 3. Return the number of bytes flushed.
   return 0;
@@ -166,7 +168,7 @@ ssize_t fill_buffer(RO_FILE* file) {
   //   return value checking.
   ssize_t result = 0;
   off_t filesize = ro_seek(file, 0, SEEK_END) + 1;
-  ro_seek(file, 0, SEEK_SET);
+  ro_seek(file, 0, SEEK_SET);  // Reset file pointer
   int bytes_left = filesize;
   do {   // Loop until error or file is finished
     result = read(file->fd, file->buf + (filesize - bytes_left), bytes_left);
@@ -175,7 +177,7 @@ ssize_t fill_buffer(RO_FILE* file) {
         close(file->fd);
         perror("Error reading from file");
         return -1;
-      } 
+      }
       continue;
     }
     bytes_left -= result;
