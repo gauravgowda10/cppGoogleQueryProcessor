@@ -1,9 +1,7 @@
 /*
-Arjun Srivastava
-arj1@uw.edu
-CSE 333
-Copyright 2022 Arjun Srivastava
-*/
+ * Copyright ©2022 Arjun Srivastava & Gaurav Gowda. All rights reserved.
+ * UW Email: arj1@uw.edu & ggowda@uw.edu
+ */
 
 #include "ro_file.h"
 
@@ -109,6 +107,7 @@ off_t ro_tell(RO_FILE *file) {
   return file->buf_pos + file->buf_index;
 }
 
+// TODO(ggowda & arj1): Write this function
 int ro_seek(RO_FILE *file, off_t offset, int whence) {
   // 1. Check validity of arguments, where applicable.
   if (file == NULL) {
@@ -129,6 +128,7 @@ int ro_seek(RO_FILE *file, off_t offset, int whence) {
   return 0;
 }
 
+// TODO(ggowda & arj1): Write this function
 int ro_close(RO_FILE *file) {
   // Clean up all RO_FILE resources, returns non-zero on error
   if (file == NULL) {
@@ -142,6 +142,9 @@ int ro_close(RO_FILE *file) {
   return res;
 }
 
+/*** STATIC HELPER FUNCTION DEFINITIONS *************************************/
+
+// TODO(ggowda & arj1): Write this function
 size_t flush_buffer(RO_FILE *file, char *out, int amount) {
   if (file == NULL || out == NULL) {
     return 0;
@@ -165,6 +168,7 @@ size_t flush_buffer(RO_FILE *file, char *out, int amount) {
   return bytes_flushed;
 }
 
+// TODO(ggowda & arj1): Write this function
 ssize_t fill_buffer(RO_FILE *file) {
   // NOTES:
   // - For maximum buffering benefit, we are "resetting" the buffer and then
@@ -185,7 +189,7 @@ ssize_t fill_buffer(RO_FILE *file) {
 
   do {
     ssize_t result = read(file->fd, (file->buf) + bytes_buffered,
-                        RO_FILE_BUF_LEN - bytes_buffered);
+    RO_FILE_BUF_LEN - bytes_buffered);
     // reached the end of file
     if (result == 0) {
       break;
