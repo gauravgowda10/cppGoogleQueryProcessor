@@ -9,10 +9,13 @@
 because tests that involve adding new key/values to the hashtable are passing
 - I think the issue has something to do with casting since the GetDocID() function
 is very simple in its implementation
-- 
 
 ## C) How you fixed the bug and why the fix was necessary
-- Instead of returning ()
+- Instead of returning (DocID_t) kv.value, I realized I needed to cast like
+\*(DocID_t*) kv.value instead. This is because HTValue_t (the type of kv.value)
+is defined as a void*. I need to first cast kv.value as a pointer and then dereference it.
+This issue popped up in my Add() function as well, but once I made these changes I passed
+all the tests.
 
 
 # Bug 2
