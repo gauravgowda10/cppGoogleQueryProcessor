@@ -141,7 +141,6 @@ static void HandleDir(char* dir_path, DIR* d, DocTable** doc_table,
     // How do you compare strings in C?
     if (strcmp(".", dirent->d_name) == 0 ||
         strcmp("..", dirent->d_name) == 0) {
-          i++;
           continue;
     }
 
@@ -192,6 +191,8 @@ static void HandleDir(char* dir_path, DIR* d, DocTable** doc_table,
         entries[i].is_dir = false;
       } else if (S_ISDIR(st.st_mode)) {
         entries[i].is_dir = true;
+      } else {
+        continue;
       }
     }
     i++;
@@ -229,7 +230,9 @@ static void HandleFile(char* file_path, DocTable** doc_table,
   // STEP 4.
   // Invoke ParseIntoWordPositionsTable() to build the word hashtable out
   // of the file.
-  tab = ParseIntoWordPositionsTable(ReadFileToString(file_path, &file_len));
+  char* buf = ReadFileToString(file_path, &file_len);
+  tab = ParseIntoWordPositionsTable(buf);
+  // TODO: WHAT IF PARSEINTOWORDPOSITIONS RETURNS NULL???
 
   // STEP 5.
   // Invoke DocTable_Add() to register the new file with the doc_table.
