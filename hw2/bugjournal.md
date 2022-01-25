@@ -35,7 +35,7 @@ all the tests.
 # Bug 3
 
 ## A) How is your program acting differently than you expect it to?
-- 
+- Segmentation fault in MemIndex.c MemIndex_Search() function on line 244.
 
 ## B) Brainstorm a few possible causes of the bug
 - 
@@ -43,4 +43,4 @@ all the tests.
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
-- 
+- I was incorrectly casting the SearchResult* result to (LLPayload_t) when I really should have been storing a pointer to it as (LLPayload_t*) &result.
