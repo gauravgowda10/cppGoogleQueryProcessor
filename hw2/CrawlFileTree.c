@@ -187,10 +187,9 @@ static void HandleDir(char* dir_path, DIR* d, DocTable** doc_table,
       // using/ HandleDir() in our second pass.
       //
       // If it is neither, skip the file.
-      if (S_ISREG(st.st_mode)) {
-        entries[i].is_dir = false;
-      } else if (S_ISDIR(st.st_mode)) {
-        entries[i].is_dir = true;
+      bool is_dir = S_ISDIR(st.st_mode);
+      if (S_ISREG(st.st_mode) || is_dir) {
+        entries[i].is_dir = is_dir;
       } else {
         continue;
       }
@@ -232,7 +231,9 @@ static void HandleFile(char* file_path, DocTable** doc_table,
   // of the file.
   char* buf = ReadFileToString(file_path, &file_len);
   tab = ParseIntoWordPositionsTable(buf);
-  // TODO: WHAT IF PARSEINTOWORDPOSITIONS RETURNS NULL???
+  if (!tab) {   // We don't want to process file
+    return;
+  }
 
   // STEP 5.
   // Invoke DocTable_Add() to register the new file with the doc_table.

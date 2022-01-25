@@ -21,10 +21,10 @@ all the tests.
 # Bug 2
 
 ## A) How is your program acting differently than you expect it to?
-- 
+- My readdir() loop inside the CrawlFileTree.c HandleDir() function is not updating the array of entries correctly, resulting in memory leaks and incorrect files being passed to HandleFile()
 
 ## B) Brainstorm a few possible causes of the bug
-- 
+- Since I am using a while loop, I must be incrementing/dealing with the 'i' counter incorrectly. 
 - 
 - 
 

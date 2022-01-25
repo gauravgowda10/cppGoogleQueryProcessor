@@ -98,8 +98,7 @@ void MemIndex_AddPostingList(MemIndex* index, char* word, DocID_t doc_id,
   // STEP 1.
   // Remove this early return.  We added this in here so that your unittests
   // would pass even if you haven't finished your MemIndex implementation.
-  return;
-
+  // return;
 
   // First, we have to see if the passed-in word already exists in
   // the inverted index.
@@ -115,8 +114,13 @@ void MemIndex_AddPostingList(MemIndex* index, char* word, DocID_t doc_id,
     //       mapping.
     //   (3) insert the the new WordPostings into the inverted index (ie, into
     //       the "index" table).
+    wp = (WordPostings*) malloc(sizeof(WordPostings));
+    wp->postings = HashTable_Allocate(LinkedList_NumElements(postings));
+    wp->word = word;  // Allocate memory
 
-
+    mi_kv.key = key;
+    mi_kv.value = wp;
+    HashTable_Insert(index, mi_kv, &unused);
 
   } else {
     // Yes, this word already exists in the inverted index.  There's no need
@@ -145,6 +149,9 @@ void MemIndex_AddPostingList(MemIndex* index, char* word, DocID_t doc_id,
   // The entry's key is this docID and the entry's value
   // is the "postings" (ie, word positions list) we were passed
   // as an argument.
+  postings_kv.key = doc_id;
+  postings_kv.value = postings;
+  HashTable_Insert(wp->postings, postings_kv, &unused);
 }
 
 LinkedList* MemIndex_Search(MemIndex* index, char* query[], int query_len) {
@@ -167,8 +174,13 @@ LinkedList* MemIndex_Search(MemIndex* index, char* query[], int query_len) {
   // each document that matches, allocate and initialize a SearchResult
   // structure (the initial computed rank is the number of times the word
   // appears in that document).  Finally, append the SearchResult onto retline.
-
-
+  ret_list = LinkedList_Allocate();
+  key = FNVHash64((unsigned char *) query[0], strlen(query[0]));
+  if (HashTable_Find(index, key, &kv)) {
+    wp = (WordPostings*) kv.value;
+    HTIterator* iter = HTIterator_Allocate(wp->postings);
+      
+  }
 
   // Great; we have our search results for the first query
   // word.  If there is only one query word, we're done!
