@@ -51,6 +51,9 @@ static ssize_t fill_buffer(RO_FILE* file);
 // TODO(ggowda & arj1): Write this function
 RO_FILE *ro_open(char *filename) {
   // 1. Allocate a new RO_FILE
+  if (filename == NULL) {
+    return NULL;
+  }
   RO_FILE* file = (RO_FILE*) malloc(sizeof(RO_FILE));
 
   // 2. Get the file descriptor for the file
@@ -61,7 +64,12 @@ RO_FILE *ro_open(char *filename) {
   }
 
   // 3. Allocate the internal buffer
-  file->buf = (char*) malloc(RO_FILE_BUF_LEN);
+  char* int_buff = (char*) malloc(sizeof(char) * RO_FILE_BUF_LEN);
+
+  if (int_buff == NULL) {
+    return NULL;
+  }
+  file->buf = int_buff;
 
   // 4. Initialize the other fields (no reading done yet)
   file->buf_pos = 0;
@@ -110,7 +118,11 @@ off_t ro_tell(RO_FILE *file) {
 // TODO(ggowda & arj1): Write this function
 int ro_seek(RO_FILE *file, off_t offset, int whence) {
   // 1. Check validity of arguments, where applicable.
-  if (file == NULL) {
+  if (file == NULL || file->buf == NULL || file->fd == -1) {
+    return 1;
+  }
+  
+  if (whence != SEEK_SET && whence != SEEK_END && whence != SEEK_CUR) {
     return 1;
   }
 
@@ -120,6 +132,8 @@ int ro_seek(RO_FILE *file, off_t offset, int whence) {
   if (file->buf_pos == -1) {
     return 1;
   }
+
+  
 
   // 3. Update our buffer indicators
   file->buf_index = 0;
