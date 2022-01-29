@@ -54,6 +54,67 @@ int main(int argc, char** argv) {
   // Note that you should make sure the fomatting of your
   // searchshell output exactly matches our solution binaries
   // to get full points on this part.
+
+  // Step 1: Crawl from a directory provided by argv[1] to produce and index
+  DocTable* table;
+  MemIndex* index;
+  if(!CrawlFileTree(argv[1], &table, &index)){
+    fprintf(stderr, "Incorrect Crawl File Tree");
+  }
+
+  Verify333(table != NULL);
+  Verify333(index != NULL);
+
+  // Step 2: Prompt the user for a query and read the query from stdin, in a loop
+  char input[1024];
+  char* token;
+  char* ptr;
+  LinkedList* documents;
+  LLIterator* iterator;
+  SearchResult* searchResult;
+  while(true){
+    printf("Enter Query: \n");
+    if(fgets(input, 1024, stdin) != NULL){
+      char** query = (char**) malloc(1024 * sizeof(char**));
+      Verify333(query != NULL);
+
+      // Step 3: Split a query into words (check out strtok_r)
+      int length;
+      char* input_pointer = input;
+      do {
+        token = strtok_r(input_pointer, " ", &ptr);
+        if (token != NULL) {
+          query[length++] = token;
+          input_pointer = NULL;
+        }
+      } while(token != NULL);
+
+      char *p = strchr(query[length - 1], '\n');
+      if (p) {
+        *p = '\0';
+      }
+
+      // Step 4: Process a query against the index and print out the results
+      documents = MemIndex_Search(index, query, length);
+      Verify333(documents != NULL);
+      
+      iterator = LLIterator_Allocate(documents);
+      Verify333(iterator != NULL);
+
+      do {
+        LLIteratorGetPayload(iterator, (void **) &searchResult);
+        printf("  %s (%u)\n", DTLookupDocID(table, searchResult->doc_id), searchResult->rank);
+      } while (LLIteratorNext(iterator));
+
+      LLIteratorFree(iterator);
+      free(query);
+    }
+    
+  }
+
+  FreeDocTable(table);
+  FreeMemIndex(index);
+
   return EXIT_SUCCESS;
 }
 
