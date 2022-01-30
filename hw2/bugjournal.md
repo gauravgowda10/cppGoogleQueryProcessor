@@ -43,4 +43,4 @@ all the tests.
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
-- I was incorrectly casting the SearchResult* result to (LLPayload_t) when I really should have been storing a pointer to it as (LLPayload_t*) &result.
+- I was incorrectly casting the SearchResult* result to (LLPayload_t) when I really should have been storing a pointer to it as (LLPayload_t*) &result. I neglected read the description of the LLPayload_t type definition. In this case it makes more sense to be storing a pointer to my struct pointer and not the struct pointer itself.

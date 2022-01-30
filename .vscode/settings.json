@@ -3,6 +3,8 @@
         "*.tcc": "c",
         "cstdlib": "c",
         "memory": "c",
-        "cstdio": "c"
+        "cstdio": "c",
+        "limits": "cpp",
+        "iostream": "cpp"
     }
 }
