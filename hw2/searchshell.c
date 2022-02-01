@@ -26,8 +26,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Helper function declarations, constants, etc
 static void Usage(void);
-static void ProcessQueries(DocTable* dt, MemIndex* mi);
-static int GetNextLine(FILE* f, char** ret_str);
+//static void ProcessQueries(DocTable* dt, MemIndex* mi);
+//static int GetNextLine(FILE* f, char** ret_str);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -60,6 +60,8 @@ int main(int argc, char** argv) {
   MemIndex* index;
   if(!CrawlFileTree(argv[1], &table, &index)){
     fprintf(stderr, "Incorrect Crawl File Tree");
+  } else{
+    printf("Indexing '%s'\n", argv[1]);
   }
 
   Verify333(table != NULL);
@@ -73,47 +75,56 @@ int main(int argc, char** argv) {
   LLIterator* iterator;
   SearchResult* searchResult;
   while(true){
-    printf("Enter Query: \n");
+    printf("enter query: \n");
     if(fgets(input, 1024, stdin) != NULL){
-      char** query = (char**) malloc(1024 * sizeof(char**));
+      char** query = (char**) malloc(512 * sizeof(char**));
       Verify333(query != NULL);
 
       // Step 3: Split a query into words (check out strtok_r)
-      int length;
+      int length = 0;
+      char *temp = input; // make a copy
+
+      // adjust copy to lowercase
+      unsigned char *tptr = (unsigned char *)temp;
+      while(*tptr) {
+          *tptr = tolower(*tptr);
+          tptr++;
+      }
+
       char* input_pointer = input;
-      do {
+      token = strtok_r(input_pointer, " ", &ptr);
+      
+      while(token != NULL) { 
+        query[length++] = token;
+        input_pointer = NULL;
         token = strtok_r(input_pointer, " ", &ptr);
-        if (token != NULL) {
-          query[length++] = token;
-          input_pointer = NULL;
-        }
-      } while(token != NULL);
+      }
 
       char *p = strchr(query[length - 1], '\n');
-      if (p) {
-        *p = '\0';
-      }
+      if (p) *p = '\0';
+      
+      //printf("%s\n", *query);
 
       // Step 4: Process a query against the index and print out the results
       documents = MemIndex_Search(index, query, length);
-      Verify333(documents != NULL);
-      
-      iterator = LLIterator_Allocate(documents);
-      Verify333(iterator != NULL);
+      if(documents != NULL){
+        iterator = LLIterator_Allocate(documents);
+        Verify333(iterator != NULL);
 
-      do {
-        LLIteratorGetPayload(iterator, (void **) &searchResult);
-        printf("  %s (%u)\n", DTLookupDocID(table, searchResult->doc_id), searchResult->rank);
-      } while (LLIteratorNext(iterator));
+        do {
+          LLIterator_Get(iterator, (void **) &searchResult);
+          printf("  %s (%u)\n", DocTable_GetDocName(table, searchResult->doc_id), searchResult->rank);
+          LLIterator_Next(iterator);
+        } while (LLIterator_IsValid(iterator));
 
-      LLIteratorFree(iterator);
+        LLIterator_Free(iterator);
+      }
       free(query);
     }
-    
   }
 
-  FreeDocTable(table);
-  FreeMemIndex(index);
+  DocTable_Free(table);
+  MemIndex_Free(index);
 
   return EXIT_SUCCESS;
 }
@@ -129,10 +140,11 @@ static void Usage(void) {
           "path to a directory to build an index under.\n");
   exit(EXIT_FAILURE);
 }
-
+/*
 static void ProcessQueries(DocTable* dt, MemIndex* mi) {
 }
-
+*
 static int GetNextLine(FILE* f, char** ret_str) {
   return -1;  // you may want to change this
 }
+*/
