@@ -25,11 +25,9 @@ all the tests.
 
 ## B) Brainstorm a few possible causes of the bug
 - Since I am using a while loop, I must be incrementing/dealing with the 'i' counter incorrectly. 
-- 
-- 
 
 ## C) How you fixed the bug and why the fix was necessary
-- 
+- I was not properly updating the i value. There were numerous conditionals where i should not have been updated, so I fixed my while loop logic to only update i at the end when we are sure the next entry can be processed.
 
 
 # Bug 3
@@ -38,8 +36,8 @@ all the tests.
 - Segmentation fault in MemIndex.c MemIndex_Search() function on line 244.
 
 ## B) Brainstorm a few possible causes of the bug
-- 
-- 
+- Payload not getting free'd?
+- Something to do with the SearchResult struct
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
@@ -58,4 +56,4 @@ there is no memory being lost.
 - 
 
 ## C) How you fixed the bug and why the fix was necessary
-- I was incorrectly casting the SearchResult* result to (LLPayload_t) when I really should have been storing a pointer to it as (LLPayload_t*) &result. I neglected read the description of the LLPayload_t type definition. In this case it makes more sense to be storing a pointer to my struct pointer and not the struct pointer itself.
+- 
