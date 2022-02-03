@@ -29,6 +29,7 @@ static void Usage(void);
 //static void ProcessQueries(DocTable* dt, MemIndex* mi);
 //static int GetNextLine(FILE* f, char** ret_str);
 
+static void LLNoOpFree(LLPayload_t freeme);
 
 //////////////////////////////////////////////////////////////////////////////
 // Main
@@ -60,6 +61,7 @@ int main(int argc, char** argv) {
   MemIndex* index;
   if(!CrawlFileTree(argv[1], &table, &index)){
     fprintf(stderr, "Incorrect Crawl File Tree");
+    Usage();
   } else{
     printf("Indexing '%s'\n", argv[1]);
   }
@@ -68,16 +70,19 @@ int main(int argc, char** argv) {
   Verify333(index != NULL);
 
   // Step 2: Prompt the user for a query and read the query from stdin, in a loop
-  char input[1024];
-  char* token;
-  char* ptr;
   LinkedList* documents;
   LLIterator* iterator;
   SearchResult* searchResult;
+  
+  char input[1024];
+  char* token;
+  char* ptr;
+  int i = 0;
+  
   while(true){
     printf("enter query: \n");
     if(fgets(input, 1024, stdin) != NULL){
-      char** query = (char**) malloc(512 * sizeof(char**));
+      char** query = (char**) malloc(1024 * sizeof(char**));
       Verify333(query != NULL);
 
       // Step 3: Split a query into words (check out strtok_r)
@@ -102,8 +107,6 @@ int main(int argc, char** argv) {
 
       char *p = strchr(query[length - 1], '\n');
       if (p) *p = '\0';
-      
-      //printf("%s\n", *query);
 
       // Step 4: Process a query against the index and print out the results
       documents = MemIndex_Search(index, query, length);
@@ -118,11 +121,14 @@ int main(int argc, char** argv) {
         } while (LLIterator_IsValid(iterator));
 
         LLIterator_Free(iterator);
+        LinkedList_Free(documents, LLNoOpFree);
       }
       free(query);
+      i++;
+    } else{
+      break;
     }
   }
-
   DocTable_Free(table);
   MemIndex_Free(index);
 
@@ -140,6 +146,8 @@ static void Usage(void) {
           "path to a directory to build an index under.\n");
   exit(EXIT_FAILURE);
 }
+
+static void LLNoOpFree(LLPayload_t freeme) { }
 /*
 static void ProcessQueries(DocTable* dt, MemIndex* mi) {
 }
