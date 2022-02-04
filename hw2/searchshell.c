@@ -12,6 +12,9 @@
 // Feature test macro for strtok_r (c.f., Linux Programming Interface p. 63)
 #define _XOPEN_SOURCE 600
 
+// Buffer Size
+#define INPUT_BUFFER_SIZE 1024
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,7 +72,7 @@ int main(int argc, char** argv) {
   LLIterator* iterator;
   SearchResult* searchResult;
 
-  char input[1024];
+  char input[INPUT_BUFFER_SIZE];
   char* token;
   char* ptr;
 
@@ -77,10 +80,10 @@ int main(int argc, char** argv) {
 
   while (true) {
     printf("enter query: \n");
-    if (fgets(input, 1024, stdin) == NULL) {
+    if (fgets(input, INPUT_BUFFER_SIZE, stdin) == NULL) {
       break;
     }
-    char** query = (char**) malloc(1024 * sizeof(char**));
+    char** query = (char**) malloc(INPUT_BUFFER_SIZE * sizeof(char**));
     Verify333(query != NULL);
 
     // Step 3: Split a query into words (check out strtok_r)
