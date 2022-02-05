@@ -21,13 +21,15 @@ all the tests.
 # Bug 2
 
 ## A) How is your program acting differently than you expect it to?
-- My readdir() loop inside the CrawlFileTree.c HandleDir() function is not updating the array of entries correctly, resulting in memory leaks and incorrect files being passed to HandleFile()
+- My readdir() loop inside the CrawlFileTree.c HandleDir() function 
+is not updating the array of entries correctly, resulting in memory leaks and incorrect files being passed to HandleFile()
 
 ## B) Brainstorm a few possible causes of the bug
 - Since I am using a while loop, I must be incrementing/dealing with the 'i' counter incorrectly. 
 
 ## C) How you fixed the bug and why the fix was necessary
-- I was not properly updating the i value. There were numerous conditionals where i should not have been updated, so I fixed my while loop logic to only update i at the end when we are sure the next entry can be processed.
+- I was not properly updating the i value. There were numerous conditionals where i should not have been updated, 
+so I fixed my while loop logic to only update i at the end when we are sure the next entry can be processed.
 
 
 # Bug 3
@@ -45,6 +47,25 @@ all the tests.
 when I really should have been storing a pointer to it as (LLPayload_t*) &result. 
 I neglected read the description of the LLPayload_t type definition. In this case 
 it makes more sense to be storing a pointer to my struct pointer and not the struct pointer itself.
+
+
+# Bug 4
+
+## A) How is your program acting differently than you expect it to?
+- Certain input when I entered queries to the searchshell class would not work.
+No Error would be thrown, but nothing would be outputed.
+
+## B) Brainstorm a few possible causes of the bug
+- When I split the queries into multiple words, we could possibly be changing the 
+words.
+- The query input is not in the correct form (i.e. Capitilization, spaces, etc.)
+- Incorrectly changing the end of line character, so the last word is not 
+being saved correctly
+
+## C) How you fixed the bug and why the fix was necessary
+- After, I split the query into different words, we printed out these words.
+We noticed that only the words with capitalized letters were having this issue,
+so we changed all letters to lowercase when we split the query into words.
 
 
 
