@@ -8,7 +8,8 @@
 - &pointer would return the address of the pointer itself, so I don't want to be using the value like that.
 
 ## C) How you fixed the bug and why the fix was necessary
-- I had to dereference the payload pointer before setting it equal to the nodes payload. This is because I am supposed to be setting the value of the pointer to the node's payload value, and not the address.
+- I had to dereference the payload pointer before setting it equal to the nodes payload. This is because 
+I am supposed to be setting the value of the pointer to the node's payload value, and not the address.
 
 
 # Bug 2
@@ -36,4 +37,7 @@ to the node' next next node instead, and fixing the order solved my issue.
 - After some print debugging, the get() or next() methods must be where the issue is occurring- 
 
 ## C) How you fixed the bug and why the fix was necessary
-- Turns out I was using LLIterator_Get() incorrectly. HTIterator_Get() has an output parameter, "*keyvalue", which is supposed to point to a copy of the gotten payload. I was using LLIterator_Get() to make keyvalue POINT to the payload, when in reality I needed to dereference keyvalue and set it equal to the dereferenced result from LLIterator_Get(). Now, keyvalue isn't concerned with the payload's address, and the memory leak was fixed.
+- Turns out I was using LLIterator_Get() incorrectly. HTIterator_Get() has an output parameter, "*keyvalue", 
+which is supposed to point to a copy of the gotten payload. I was using LLIterator_Get() to make keyvalue POINT to the payload, 
+when in reality I needed to dereference keyvalue and set it equal to the dereferenced result from LLIterator_Get(). Now, keyvalue 
+isn't concerned with the payload's address, and the memory leak was fixed.

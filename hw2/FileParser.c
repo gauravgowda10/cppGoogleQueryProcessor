@@ -221,13 +221,13 @@ static void InsertContent(HashTable* tab, char* content) {
 
   bool in_word = false;
   DocPositionOffset_t pos = 0;
-  while (1) {
+  while (true) {
     *cur_ptr = tolower(*cur_ptr);
     char current_char = *cur_ptr;
     if (isalpha(current_char)) {
       if (!in_word) {
         word_start = cur_ptr;
-        in_word = true;
+        in_word = !in_word;
       }
     } else {  // Current char is non alphaneumeric
       *cur_ptr = '\0';
@@ -236,9 +236,7 @@ static void InsertContent(HashTable* tab, char* content) {
       }
       word_start = NULL;
       in_word = false;
-      if (current_char == '\0') {   // EOF
-        break;
-      }
+      if (current_char == '\0') break;
     }
     pos++;
     cur_ptr++;

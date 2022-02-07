@@ -98,6 +98,7 @@ HashTable* HashTable_Allocate(int num_buckets) {
     ht->buckets[i] = LinkedList_Allocate();
   }
 
+
   return ht;
 }
 
