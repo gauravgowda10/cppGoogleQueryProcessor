@@ -17,7 +17,7 @@ class Vector {
     Vector();
     Vector(const float x, const float y, const float z);
     Vector(const Vector& copyme);
-    ~Vector() { delete xyz_; }
+    ~Vector() { delete[] xyz_; }
 
     // Assignment operator
     Vector& operator=(const Vector& rhs);
@@ -29,12 +29,9 @@ class Vector {
     // Arithmetic operators
     Vector operator+(const Vector& rhs) const;
     Vector operator-(const Vector& rhs) const;
-
-    // Dot product
-    // float operator*(const Vector& rhs) const;
-    // Vector operator*(const float k) const;
-
     friend std::ostream& operator<<(std::ostream& s, const Vector& v);
+
+    // Multiplication
     friend Vector operator*(const Vector& v, const float k);
     friend Vector operator*(const float k, const Vector& v);
     friend float operator*(const Vector& v1, const Vector& v2);

@@ -68,17 +68,6 @@ Vector& Vector::operator-=(const Vector& rhs) {
     return *this;
 }
 
-// float Vector::operator*(const Vector& rhs) const {
-//     return xyz_[0] * rhs.xyz_[0]
-//          + xyz_[1] * rhs.xyz_[1]
-//          + xyz_[2] * rhs.xyz_[2];
-// }
-
-// Vector Vector::operator*(const float k) const {
-//     Vector newVector(xyz_[0] * k, xyz_[1] * k, xyz_[2] * k);
-//     return newVector;
-// }
-
 std::ostream& operator<<(std::ostream& s, const Vector& v) {
     s << "(" << v.xyz_[0] << "," << v.xyz_[1] << "," << v.xyz_[2] << ")";
     return s;

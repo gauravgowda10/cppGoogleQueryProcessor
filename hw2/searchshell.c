@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
       }
       free(query);
       i++;
-    } else{
+    } else {
       break;
     }
   }
