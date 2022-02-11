@@ -119,15 +119,6 @@ int main(int argc, char** argv) {
       do {
         LLIterator_Get(iterator, (void **) &searchResult);
 
-<<<<<<< HEAD
-        LLIterator_Free(iterator);
-        LinkedList_Free(documents, LLNoOpFree);
-      }
-      free(query);
-      i++;
-    } else {
-      break;
-=======
         printf("  %s (%u)\n",
         DocTable_GetDocName(table, searchResult->doc_id),
         searchResult->rank);
@@ -137,7 +128,6 @@ int main(int argc, char** argv) {
 
       LLIterator_Free(iterator);
       LinkedList_Free(documents, (LLPayloadFreeFnPtr) free);
->>>>>>> dffd46c0230c4c712a492767823cb35fdae38ef1
     }
     free(query);
   }
