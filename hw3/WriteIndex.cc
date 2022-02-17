@@ -181,11 +181,24 @@ int WriteIndex(MemIndex* mi, DocTable* dt, const char* file_name) {
 
   // STEP 1.
   // Write the memindex.
+  int mi_bytes = WriteMemIndex(f, mi, cur_pos);
+  if (mi_bytes == kFailedWrite) {
+    fclose(f);
+    unlink(file_name);  // delete the file
+    return kFailedWrite;
+  }
+  cur_pos += mi_bytes;
 
 
   // STEP 2.
   // Finally, backtrack to write the index header and write it.
-
+  int h_bytes = WriteHeader(f, dt_bytes, mi_bytes);
+  if (h_bytes == kFailedWrite) {
+      fclose(f);
+      unlink(file_name);  // delete the file
+      return kFailedWrite;
+  }
+  cur_pos += h_bytes;
 
   // Clean up and return the total amount written.
   fclose(f);
@@ -222,7 +235,25 @@ static int WriteHeader(FILE* f, int doctable_bytes, int memidx_bytes) {
   // Seek to the start of the doctable.
   CRC32 crc;
 
+  IndexFileOffset_t offset = sizeof(IndexFileHeader);
 
+  // If fseek fails
+  if (fseek(f, offset, SEEK_SET) != 0) {
+    return kFailedWrite;
+  }
+
+  int bytesToRead = doctable_bytes + memidx_bytes;
+  int bytesRead = 0;
+  uint8_t buff[bytesToRead];
+
+  // Read one byte at a time and do CRC checksum calc
+  while (bytesRead < bytesToRead) {
+    int bytes = fread(&buff, 1, bytesToRead, f);
+    for (int i = 0; i < bytes; i++) {
+      crc.FoldByteIntoCRC(buff[i]);
+    }
+    bytesRead += bytes;
+  }
 
   // Write the header fields.  Be sure to convert the fields to
   // network order before writing them!
@@ -276,7 +307,7 @@ static int WriteHashTable(FILE* f, IndexFileOffset_t offset, HashTable* ht,
   // bucket, but you won't write a bucket.
   for (int i = 0; i < ht->num_buckets; i++) {
     // STEP 4.
-
+    ht->buckets[i]
 
   }
 
