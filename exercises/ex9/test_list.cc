@@ -58,7 +58,7 @@ int main() {
   CheckEquals(false, list->Pop(&output));
   CheckEquals(false, list->Slice(&output));
 
-  // Insert five elements
+  // // Insert five elements
   list->Push(kThree);
   list->Push(kTwo);
   list->Push(kOne);
@@ -66,15 +66,15 @@ int main() {
   list->Append(kFive);
   CheckEquals(5, list->num_elements());
 
-  // remove the back
-  CheckEquals(true, list->Slice(&output));
-  CheckEquals(kFive, output);
-  CheckEquals(4, list->num_elements());
+  // // remove the back
+  // CheckEquals(true, list->Slice(&output));
+  // CheckEquals(kFive, output);
+  // CheckEquals(4, list->num_elements());
 
-  // remove the front
-  CheckEquals(true, list->Pop(&output));
-  CheckEquals(kOne, output);
-  CheckEquals(3, list->num_elements());
+  // // remove the front
+  // CheckEquals(true, list->Pop(&output));
+  // CheckEquals(kOne, output);
+  // CheckEquals(3, list->num_elements());
 
   // delete the list
   delete list;
