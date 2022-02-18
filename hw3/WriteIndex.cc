@@ -307,7 +307,25 @@ static int WriteHashTable(FILE* f, IndexFileOffset_t offset, HashTable* ht,
   // bucket, but you won't write a bucket.
   for (int i = 0; i < ht->num_buckets; i++) {
     // STEP 4.
-    ht->buckets[i]
+    LinkedList* current_bucket = ht->buckets[i];
+    int num_elts = LinkedList_NumElements(current_bucket);
+
+    int bytes = WriteHTBucketRecord(f, record_pos, num_elts, bucket_pos);
+
+    if (bytes == kFailedWrite) {
+      return kFailedWrite;
+    }
+
+    record_pos += bytes;
+
+    // Check if chain is not empty to write bucket
+    if (num_elts != 0) {
+      int bucket_bytes = WriteHTBucket(f, record_pos, current_bucket, fn);
+      if (bucket_bytes == kFailedWrite) {
+        return kFailedWrite;
+      }
+      bucket_pos += bucket_bytes;
+    }
 
   }
 
@@ -320,7 +338,7 @@ static int WriteHTBucketRecord(FILE* f, IndexFileOffset_t offset,
                                IndexFileOffset_t bucket_offset) {
   // STEP 5.
   // Initialize a BucketRecord in network byte order.
-
+  BucketRecord bucket_rec(num_elts, bucket_offset);
 
   // fseek() to where we want to write this record.
   if (fseek(f, offset, SEEK_SET) != 0) {
@@ -329,7 +347,9 @@ static int WriteHTBucketRecord(FILE* f, IndexFileOffset_t offset,
 
   // STEP 6.
   // Write the BucketRecord.
-
+  if (fwrite(&bucket_rec, sizeof(BucketListHeader), 1, f) != 1) {
+    return kFailedWrite;
+  }
 
   // Calculate and return how many bytes we wrote.
   return sizeof(BucketRecord);
@@ -364,7 +384,13 @@ static int WriteHTBucket(FILE* f, IndexFileOffset_t offset, LinkedList* li,
     // STEP 7.
     // fseek() to the where the ElementPositionRecord should be written,
     // then fwrite() it in network order.
+    if (fseek() != ) {
+      return kFailedWrite;
+    }
 
+    if (fwrite() != 1) {
+      return kFailedWrite;
+    }
 
 
     // STEP 8.
