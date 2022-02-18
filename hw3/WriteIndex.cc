@@ -347,6 +347,7 @@ static int WriteHTBucketRecord(FILE* f, IndexFileOffset_t offset,
 
   // STEP 6.
   // Write the BucketRecord.
+  bucket_rec.ToDiskFormat();
   if (fwrite(&bucket_rec, sizeof(BucketListHeader), 1, f) != 1) {
     return kFailedWrite;
   }
@@ -384,23 +385,38 @@ static int WriteHTBucket(FILE* f, IndexFileOffset_t offset, LinkedList* li,
     // STEP 7.
     // fseek() to the where the ElementPositionRecord should be written,
     // then fwrite() it in network order.
-    if (fseek() != ) {
+    if (fseek(f, record_pos, SEEK_SET) != 0) {
+      LLIterator_Free(it);
       return kFailedWrite;
     }
 
-    if (fwrite() != 1) {
+    ElementPositionRecord record(record_pos);
+    record.ToDiskFormat();
+
+    int bytes = fwrite(&record, sizeof(ElementPositionRecord), 1, f);
+
+    if (bytes != 1) {
+      LLIterator_Free(it);
       return kFailedWrite;
     }
 
 
     // STEP 8.
     // Write the element itself, using fn.
+    HTKeyValue_t* kv;
+    LLIterator_Get(it, reinterpret_cast<LLPayload_t*>(&kv));
 
+    bytes = fn(f, element_pos, kv);
 
+    if (bytes == kFailedWrite) {
+      LLIterator_Free(it);
+      return kFailedWrite;
+    }
+    
 
     // Advance to the next element in the chain, updating our offsets.
     record_pos += sizeof(ElementPositionRecord);
-    element_pos += 1;  // you probably want to change this
+    element_pos += bytes;
     LLIterator_Next(it);
   }
   LLIterator_Free(it);
