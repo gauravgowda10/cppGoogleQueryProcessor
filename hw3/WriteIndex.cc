@@ -244,13 +244,13 @@ static int WriteHeader(FILE* f, int doctable_bytes, int memidx_bytes) {
 
   int bytesToRead = doctable_bytes + memidx_bytes;
   int bytesRead = 0;
-  uint8_t buff[bytesToRead];
+  uint8_t buffer[bytesToRead];
 
   // Read one byte at a time and do CRC checksum calc
   while (bytesRead < bytesToRead) {
-    int bytes = fread(&buff, 1, bytesToRead, f);
+    int bytes = fread(&buffer, 1, bytesToRead, f);
     for (int i = 0; i < bytes; i++) {
-      crc.FoldByteIntoCRC(buff[i]);
+      crc.FoldByteIntoCRC(buffer[i]);
     }
     bytesRead += bytes;
   }
@@ -435,8 +435,8 @@ static int WriteDocidToDocnameFn(FILE* f, IndexFileOffset_t offset,
                                  HTKeyValue_t* kv) {
   // STEP 9.
   // determine the file name length
-  int16_t file_name_bytes = kFailedWrite;  // you may want to change this
-
+  char* file_name = static_cast<char*>(kv->value);
+  int16_t file_name_bytes = strlen(file_name);
 
   // fwrite() the docid from `kv`.  Remember to convert to
   // disk format before writing.
@@ -455,11 +455,14 @@ static int WriteDocidToDocnameFn(FILE* f, IndexFileOffset_t offset,
   // fwrite() the file name.  We don't write the null-terminator from the
   // string, just the characters, since we've already written a length
   // field for the string.
-
+  int bytes = fwrite(file_name, file_name_bytes, 1, f);
+  if (bytes != 1) {
+    return kFailedWrite;
+  }
 
   // STEP 11.
   // calculate and return the total amount written.
-  return kFailedWrite;  // you may want to change this
+  return file_name_bytes + sizeof(DoctableElementHeader);
 }
 
 // This write_element_fn is used to write a DocID + position list
@@ -479,7 +482,7 @@ static int WriteDocIDToPositionListFn(FILE* f,
   // STEP 12.
   // Write the header, in disk format.
   // You'll need to fseek() to the right location in the file.
-
+  int starting_loc = fseek(f, offset, SEEK_SET);
 
   // Loop through the positions list, writing each position out.
   DocIDElementPosition position;
@@ -488,11 +491,13 @@ static int WriteDocIDToPositionListFn(FILE* f,
   for (int i = 0; i < num_positions; i++) {
     // STEP 13.
     // Get the next position from the list.
-
+    DocPositionOffset_t* payload;
+    LLIterator_Get(it, reinterpret_cast<LLPayload_t*>(&payload));
 
     // STEP 14.
     // Truncate to 32 bits, then convert it to network order and write it out.
 
+    position.ToDiskFormat();
 
     // Advance to the next position.
     LLIterator_Next(it);
@@ -501,7 +506,7 @@ static int WriteDocIDToPositionListFn(FILE* f,
 
   // STEP 15.
   // Calculate and return the total amount of data written.
-  return kFailedWrite;  // you may want to change this
+  return kFailedWrite;
 }
 
 // This write_element_fn is used to write a WordPostings
