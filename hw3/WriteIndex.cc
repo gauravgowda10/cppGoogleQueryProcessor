@@ -244,13 +244,13 @@ static int WriteHeader(FILE* f, int doctable_bytes, int memidx_bytes) {
 
   int bytesToRead = doctable_bytes + memidx_bytes;
   int bytesRead = 0;
-  uint8_t buffer[bytesToRead];
+  uint8_t buf[bytesToRead];
 
   // Read one byte at a time and do CRC checksum calc
   while (bytesRead < bytesToRead) {
-    int bytes = fread(&buffer, 1, bytesToRead, f);
+    int bytes = fread(&buf, 1, bytesToRead, f);
     for (int i = 0; i < bytes; i++) {
-      crc.FoldByteIntoCRC(buffer[i]);
+      crc.FoldByteIntoCRC(buf[i]);
     }
     bytesRead += bytes;
   }
@@ -481,6 +481,8 @@ static int WriteDocIDToPositionListFn(FILE* f,
 
   // STEP 12.
   // Write the header, in disk format.
+  DocIDElementHeader header(doc_id, num_positions);
+
   // You'll need to fseek() to the right location in the file.
   int starting_loc = fseek(f, offset, SEEK_SET);
 
@@ -506,7 +508,7 @@ static int WriteDocIDToPositionListFn(FILE* f,
 
   // STEP 15.
   // Calculate and return the total amount of data written.
-  return kFailedWrite;
+  return sizeof(DocIDElementPosition)*num_positions + sizeof(DocIDElementHeader);
 }
 
 // This write_element_fn is used to write a WordPostings
@@ -520,7 +522,8 @@ static int WriteWordToPostingsFn(FILE* f,
 
   // STEP 16.
   // Prepare the wordlen field.
-  int16_t word_bytes = kFailedWrite;  // you may want to change this
+  char* word = wp->word;
+  int16_t word_bytes = strlen(word);  // you may want to change this
 
   // Write the nested DocID->positions hashtable (i.e., the "docID
   // table" element in the diagrams).  Use WriteHashTable() to do it,
@@ -538,17 +541,30 @@ static int WriteWordToPostingsFn(FILE* f,
   // STEP 17.
   // Write the header, in network order, in the right place in the file.
   WordPostingsHeader header(word_bytes, ht_bytes);
+  header.ToDiskFormat();
+  if (fseek(f, offset, SEEK_SET) != 0) {
+    return kFailedWrite;
+  }
 
-
+  int header_bytes = fwrite(&header, sizeof(WordPostingsHeader), 1, f);
+  if (header_bytes != 1) {
+    return kFailedWrite;
+  }
 
   // STEP 18.
   // Write the word itself, excluding the null terminator, in the right
   // place in the file.
+  if (fseek(f, offset + sizeof(WordPostingsHeader), SEEK_SET) != 0) {
+    return kFailedWrite;
+  }
 
+  if (fwrite(word, word_bytes, 1, f) != 1) {
+    return kFailedWrite;
+  }
 
 
   // STEP 19.
   // Calculate and return the total amount of data written.
-  return kFailedWrite;  // you may want to change this
+  return word_bytes + header_bytes + sizeof(WordPostingsHeader);
 }
 }  // namespace hw3
