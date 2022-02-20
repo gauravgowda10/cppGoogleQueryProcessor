@@ -44,7 +44,7 @@ FileIndexReader::FileIndexReader(const string& file_name,
 
   // STEP 3.
   // Verify that the magic number is correct.  Crash if not.
-  // Verify333();
+  Verify333(header_.magic_number == kMagicNumber);
 
   // Make sure the index file's length lines up with the header fields.
   struct stat f_stat;
@@ -69,6 +69,7 @@ FileIndexReader::FileIndexReader(const string& file_name,
       // You should only need to modify code inside the while loop for
       // this step. Remember that file_ is now unbuffered, so care needs
       // to be put into how the file is sequentially read
+      
     }
     Verify333(crc_obj.GetFinalCRC() == header_.checksum);
   }
