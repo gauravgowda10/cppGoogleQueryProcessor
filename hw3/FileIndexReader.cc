@@ -35,15 +35,16 @@ FileIndexReader::FileIndexReader(const string& file_name,
 
   // STEP 1.
   // Make the (FILE*) be unbuffered.  ("man setbuf")
-
+  setbuf(file_, NULL);
 
   // STEP 2.
   // Read the entire file header and convert to host format.
-
+  int bytes = fread(&header_, sizeof(IndexFileHeader), 1, file_);
+  header_.ToHostFormat();
 
   // STEP 3.
   // Verify that the magic number is correct.  Crash if not.
-
+  // Verify333();
 
   // Make sure the index file's length lines up with the header fields.
   struct stat f_stat;
