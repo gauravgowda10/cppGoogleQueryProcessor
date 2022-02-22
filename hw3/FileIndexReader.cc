@@ -69,7 +69,12 @@ FileIndexReader::FileIndexReader(const string& file_name,
       // You should only need to modify code inside the while loop for
       // this step. Remember that file_ is now unbuffered, so care needs
       // to be put into how the file is sequentially read
-      
+      int bytes = fread(&buf, 1, kBufSize, file_);
+      for (int i = 0; i < bytes; i++) {
+        crc_obj.FoldByteIntoCRC(buf[i]);
+      }
+      left_to_read -= bytes;
+
     }
     Verify333(crc_obj.GetFinalCRC() == header_.checksum);
   }
