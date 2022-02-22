@@ -244,11 +244,12 @@ static int WriteHeader(FILE* f, int doctable_bytes, int memidx_bytes) {
 
   int bytesToRead = doctable_bytes + memidx_bytes;
   int bytesRead = 0;
-  uint8_t buf[bytesToRead];
+  int bufsize = 128;
+  uint8_t buf[bufsize];
 
   // Read one byte at a time and do CRC checksum calc
   while (bytesRead < bytesToRead) {
-    int bytes = fread(&buf, 1, bytesToRead, f);
+    int bytes = fread(&buf, 1, bufsize, f);
     for (int i = 0; i < bytes; i++) {
       crc.FoldByteIntoCRC(buf[i]);
     }
@@ -320,7 +321,7 @@ static int WriteHashTable(FILE* f, IndexFileOffset_t offset, HashTable* ht,
 
     // Check if chain is not empty to write bucket
     if (num_elts != 0) {
-      int bucket_bytes = WriteHTBucket(f, record_pos, current_bucket, fn);
+      int bucket_bytes = WriteHTBucket(f, bucket_pos, current_bucket, fn);
       if (bucket_bytes == kFailedWrite) {
         return kFailedWrite;
       }
@@ -348,7 +349,7 @@ static int WriteHTBucketRecord(FILE* f, IndexFileOffset_t offset,
   // STEP 6.
   // Write the BucketRecord.
   bucket_rec.ToDiskFormat();
-  if (fwrite(&bucket_rec, sizeof(BucketListHeader), 1, f) != 1) {
+  if (fwrite(&bucket_rec, sizeof(BucketRecord), 1, f) != 1) {
     return kFailedWrite;
   }
 
@@ -390,7 +391,7 @@ static int WriteHTBucket(FILE* f, IndexFileOffset_t offset, LinkedList* li,
       return kFailedWrite;
     }
 
-    ElementPositionRecord record(record_pos);
+    ElementPositionRecord record(element_pos);
     record.ToDiskFormat();
 
     int bytes = fwrite(&record, sizeof(ElementPositionRecord), 1, f);
@@ -436,7 +437,8 @@ static int WriteDocidToDocnameFn(FILE* f, IndexFileOffset_t offset,
   // STEP 9.
   // determine the file name length
   char* file_name = static_cast<char*>(kv->value);
-  int16_t file_name_bytes = strlen(file_name);
+  int16_t file_name_bytes = strlen(file_name); // Don't add 1 because we don't want
+                                              // null terminator
 
   // fwrite() the docid from `kv`.  Remember to convert to
   // disk format before writing.
@@ -484,7 +486,9 @@ static int WriteDocIDToPositionListFn(FILE* f,
   DocIDElementHeader header(doc_id, num_positions);
 
   // You'll need to fseek() to the right location in the file.
-  int starting_loc = fseek(f, offset, SEEK_SET);
+  if (fseek(f, offset, SEEK_SET) != 0) {
+    return kFailedWrite;
+  }
 
   // Loop through the positions list, writing each position out.
   DocIDElementPosition position;
@@ -493,13 +497,19 @@ static int WriteDocIDToPositionListFn(FILE* f,
   for (int i = 0; i < num_positions; i++) {
     // STEP 13.
     // Get the next position from the list.
-    DocPositionOffset_t* payload;
-    LLIterator_Get(it, reinterpret_cast<LLPayload_t*>(&payload));
+    LLPayload_t payload;
+    LLIterator_Get(it, &payload);
 
     // STEP 14.
     // Truncate to 32 bits, then convert it to network order and write it out.
-
+    position.position = reinterpret_cast<intptr_t>(payload);
+    position.position = static_cast<DocPositionOffset_t>(position.position);
     position.ToDiskFormat();
+
+    if (fwrite(&position, sizeof(DocIDElementPosition), 1, f) != 1) {
+      LLIterator_Free(it);
+      return kFailedWrite;
+    }
 
     // Advance to the next position.
     LLIterator_Next(it);
