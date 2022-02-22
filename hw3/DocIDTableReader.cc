@@ -45,7 +45,9 @@ bool DocIDTableReader::LookupDocID(
     // STEP 1.
     // Slurp the next docid out of the current element.
     DocIDElementHeader curr_header;
-
+    Verify333(fseek(file_, curr_element, SEEK_SET) == 0);
+    Verify333(fread(&curr_header, sizeof(DocIDElementHeader), 1, file_) == 1);
+    curr_header.ToHostFormat();
 
     // Is it a match?
     if (curr_header.doc_id == doc_id) {
@@ -54,11 +56,19 @@ bool DocIDTableReader::LookupDocID(
       // std::list<DocPositionOffset_t>.  Be sure to push in the right
       // order, adding to the end of the list as you extract
       // successive positions.
-
-
+      list<DocPositionOffset_t> vals;
+      for (int i = 0; i < curr_header.num_positions; i++) {
+        ElementPositionRecord record;
+        int bytes = fread(&record, sizeof(ElementPositionRecord), 1, file_);
+        Verify333(bytes == 1);
+        record.ToHostFormat();
+        vals.push_back(record.position);
+      }
+      
       // STEP 3.
       // Return the positions list through the output parameter,
       // and return true.
+      *ret_val = vals;
 
       return true;
     }
