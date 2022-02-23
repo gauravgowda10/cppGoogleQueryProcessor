@@ -308,7 +308,7 @@ static int WriteHashTable(FILE* f, IndexFileOffset_t offset, HashTable* ht,
   // bucket, but you won't write a bucket.
   for (int i = 0; i < ht->num_buckets; i++) {
     // STEP 4.
-    LinkedList* current_bucket = ht->buckets[i];
+    LinkedList* current_bucket = (ht->buckets)[i];
     int num_elts = LinkedList_NumElements(current_bucket);
 
     int bytes = WriteHTBucketRecord(f, record_pos, num_elts, bucket_pos);
@@ -484,9 +484,12 @@ static int WriteDocIDToPositionListFn(FILE* f,
   // STEP 12.
   // Write the header, in disk format.
   DocIDElementHeader header(doc_id, num_positions);
-
   // You'll need to fseek() to the right location in the file.
   if (fseek(f, offset, SEEK_SET) != 0) {
+    return kFailedWrite;
+  }
+  header.ToDiskFormat();
+  if (fwrite(&header, sizeof(DocIDElementHeader), 1, f) != 1) {
     return kFailedWrite;
   }
 
@@ -575,6 +578,6 @@ static int WriteWordToPostingsFn(FILE* f,
 
   // STEP 19.
   // Calculate and return the total amount of data written.
-  return word_bytes + header_bytes + sizeof(WordPostingsHeader);
+  return word_bytes + ht_bytes + sizeof(WordPostingsHeader);
 }
 }  // namespace hw3
