@@ -1,3 +1,10 @@
+/*
+Arjun Srivastava
+arj1@uw.edu
+CSE 333
+Copyright 2022 Arjun Srivastava
+*/
+
 #include <memory>
 
 #include "LinkedIntList.h"
@@ -6,7 +13,7 @@ using std::weak_ptr;
 using std::shared_ptr;
 
 namespace intlist333 {
-    
+
     LinkedIntList::LinkedIntList() {
         this->num_elements_ = 0;
         this->tail_ = NULL;
@@ -58,7 +65,7 @@ namespace intlist333 {
                 this->tail_ = NULL;
             } else {
                 this->head_ = this->head_->next;
-                this->head_->prev = NULL;
+                this->head_->prev.lock() = NULL;
             }
             this->num_elements_--;
             return true;
@@ -72,10 +79,10 @@ namespace intlist333 {
             if (num_elements() == 1) {
                 return Pop(payload_ptr);
             } else {
-                shared_ptr<Node> node(new Node()); 
+                shared_ptr<Node> node(new Node());
                 node = this->tail_;
                 *payload_ptr = node->payload;
-                this->tail_ = this->tail_->prev;
+                this->tail_ = this->tail_->prev.lock();
                 this->tail_->next = NULL;
             }
             this->num_elements_--;

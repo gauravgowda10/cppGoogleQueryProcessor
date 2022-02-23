@@ -1,3 +1,10 @@
+/*
+Arjun Srivastava
+arj1@uw.edu
+CSE 333
+Copyright 2022 Arjun Srivastava
+*/
+
 #ifndef LINKEDINTLIST_H_
 #define LINKEDINTLIST_H_
 
@@ -44,7 +51,7 @@ class LinkedIntList : public IntList {
   struct Node {
     int payload;
     shared_ptr<Node> next;
-    shared_ptr<Node> prev;
+    weak_ptr<Node> prev;
   };
   shared_ptr<Node> head_;
   shared_ptr<Node> tail_;
