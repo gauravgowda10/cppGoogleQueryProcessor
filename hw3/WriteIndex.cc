@@ -244,7 +244,7 @@ static int WriteHeader(FILE* f, int doctable_bytes, int memidx_bytes) {
 
   int bytesToRead = doctable_bytes + memidx_bytes;
   int bytesRead = 0;
-  int bufsize = 128;
+  const int bufsize = 128;
   uint8_t buf[bufsize];
 
   // Read one byte at a time and do CRC checksum calc
