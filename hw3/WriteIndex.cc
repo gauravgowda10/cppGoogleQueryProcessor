@@ -28,6 +28,7 @@ namespace hw3 {
 // Helper function declarations and constants
 
 static constexpr int kFailedWrite = -1;
+static constexpr int kBufsize = 128;
 
 // Helper function to write the docID --> filename mapping from the
 // DocTable `dt` into file `f`, starting at byte offset `offset`.
@@ -35,7 +36,7 @@ static constexpr int kFailedWrite = -1;
 static int WriteDocTable(FILE* f, DocTable* dt, IndexFileOffset_t offset);
 
 // Helper function to write the MemIndex `mi` into file `f`, starting
-// at byte offset `offset`. 
+// at byte offset `offset`.
 // Returns the size of the written MemIndex or a negative value on error.
 static int WriteMemIndex(FILE* f, MemIndex* mi, IndexFileOffset_t offset);
 
@@ -244,12 +245,11 @@ static int WriteHeader(FILE* f, int doctable_bytes, int memidx_bytes) {
 
   int bytesToRead = doctable_bytes + memidx_bytes;
   int bytesRead = 0;
-  const int bufsize = 128;
-  uint8_t buf[bufsize];
+  uint8_t buf[kBufsize];
 
   // Read one byte at a time and do CRC checksum calc
   while (bytesRead < bytesToRead) {
-    int bytes = fread(&buf, 1, bufsize, f);
+    int bytes = fread(&buf, 1, kBufsize, f);
     for (int i = 0; i < bytes; i++) {
       crc.FoldByteIntoCRC(buf[i]);
     }
@@ -327,7 +327,6 @@ static int WriteHashTable(FILE* f, IndexFileOffset_t offset, HashTable* ht,
       }
       bucket_pos += bucket_bytes;
     }
-
   }
 
   // Calculate and return the total number of bytes written.
@@ -413,7 +412,7 @@ static int WriteHTBucket(FILE* f, IndexFileOffset_t offset, LinkedList* li,
       LLIterator_Free(it);
       return kFailedWrite;
     }
-    
+
 
     // Advance to the next element in the chain, updating our offsets.
     record_pos += sizeof(ElementPositionRecord);
@@ -437,7 +436,7 @@ static int WriteDocidToDocnameFn(FILE* f, IndexFileOffset_t offset,
   // STEP 9.
   // determine the file name length
   char* file_name = static_cast<char*>(kv->value);
-  int16_t file_name_bytes = strlen(file_name); // Don't add 1 because we don't want
+  int16_t file_name_bytes = strlen(file_name);  // Don't add 1 because of
                                               // null terminator
 
   // fwrite() the docid from `kv`.  Remember to convert to
@@ -521,8 +520,10 @@ static int WriteDocIDToPositionListFn(FILE* f,
 
   // STEP 15.
   // Calculate and return the total amount of data written.
-  return sizeof(DocIDElementPosition)*num_positions + sizeof(DocIDElementHeader);
+  return sizeof(DocIDElementPosition)*num_positions +
+          sizeof(DocIDElementHeader);
 }
+
 
 // This write_element_fn is used to write a WordPostings
 // element into the file at position 'offset'.

@@ -83,7 +83,7 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
   // (the only step in this file)
   vector<QueryProcessor::QueryResult> final_result;
 
-  for(int i = 0; i < array_len_; i++) {
+  for (int i = 0; i < array_len_; i++) {
     DocTableReader* dtr = dtr_array_[i];
     IndexTableReader* itr = itr_array_[i];
     list<DocIDElementHeader> result;
@@ -100,29 +100,25 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
       list<DocIDElementHeader> partial_result;
 
       didtr = itr->LookupWord(query[j]);
-      if(didtr == NULL) {
+      if (didtr == NULL) {
         result.clear();
         delete didtr;
         break;
       }
       partial_result = didtr->GetDocIDList();
-
-      
       result = MergeResults(result, partial_result);
-      
       delete didtr;
     }
-    if(result.size() == 0) {
+    if (result.size() == 0) {
       continue;
     }
     list<DocIDElementHeader>:: iterator it;
-    for(auto const& curr: result) {
+    for (auto const& curr : result) {
       QueryResult curr_result;
       Verify333(dtr->LookupDocID(curr.doc_id, &curr_result.document_name));
       curr_result.rank = curr.num_positions;
       final_result.push_back(curr_result);
     }
-
   }
 
   // Sort the final results.
@@ -139,8 +135,8 @@ static list<DocIDElementHeader> MergeResults
     int32_t num_positions = i.num_positions;
 
     for (auto const& j : list2) {
-      if (j.doc_id == i.doc_id) {  
-        num_positions += j.num_positions; 
+      if (j.doc_id == i.doc_id) {
+        num_positions += j.num_positions;
         list_final.push_back(DocIDElementHeader(i.doc_id, num_positions));
         break;
       }
