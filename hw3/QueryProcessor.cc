@@ -110,17 +110,16 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
       
       result = MergeResults(result, partial_result);
       
-
       delete didtr;
     }
     if(result.size() == 0) {
       continue;
     }
     list<DocIDElementHeader>:: iterator it;
-    for(it = result.begin(); it != result.end(); it++) {
+    for(auto const& curr: result) {
       QueryResult curr_result;
-      Verify333(dtr->LookupDocID(it->doc_id, &curr_result.document_name));
-      curr_result.rank = it->num_positions;
+      Verify333(dtr->LookupDocID(curr.doc_id, &curr_result.document_name));
+      curr_result.rank = curr.num_positions;
       final_result.push_back(curr_result);
     }
 
