@@ -59,8 +59,7 @@ bool DocIDTableReader::LookupDocID(
       list<DocPositionOffset_t> vals;
       for (int i = 0; i < curr_header.num_positions; i++) {
         ElementPositionRecord record;
-        int bytes = fread(&record, sizeof(ElementPositionRecord), 1, file_);
-        Verify333(bytes == 1);
+        Verify333(fread(&record, sizeof(ElementPositionRecord), 1, file_) == 1);
         record.ToHostFormat();
         vals.push_back(record.position);
       }
@@ -69,11 +68,9 @@ bool DocIDTableReader::LookupDocID(
       // Return the positions list through the output parameter,
       // and return true.
       *ret_val = vals;
-
       return true;
     }
   }
-
   // We failed to find a matching docID, so return false.
   return false;
 }
@@ -90,13 +87,15 @@ list<DocIDElementHeader> DocIDTableReader::GetDocIDList() const {
     // Seek to the next BucketRecord.  The "offset_" member
     // variable stores the offset of this docid table within
     // the index file.
+    Verify333(fseek(file_, offset_ + sizeof(int32_t) + i * sizeof(DocID_t), SEEK_SET) == 0);
 
 
     // STEP 5.
     // Read in the chain length and bucket position fields from
     // the bucket_rec.
     BucketRecord bucket_rec;
-
+    Verify333(fread(&bucket_rec, sizeof(BucketRecord), 1, file_) == 1);
+    bucket_rec.ToHostFormat();
 
     // Sweep through the next bucket, iterating through each
     // chain element in the bucket.
@@ -110,13 +109,15 @@ list<DocIDElementHeader> DocIDTableReader::GetDocIDList() const {
       // Read the next element position from the bucket header.
       // and seek to the element itself.
       ElementPositionRecord element_pos;
-
-
+      Verify333(fread(&element_pos, sizeof(ElementPositionRecord), 1, file_) == 1);
+      element_pos.ToHostFormat();
+      Verify333(fseek(file_, element_pos.position, SEEK_SET) == 0);
+     
       // STEP 7.
       // Read in the docid and number of positions from the element.
       DocIDElementHeader element;
-
-
+      Verify333(fread(&element, sizeof(DocIDElementHeader), 1, file_) == 1);
+      element.ToHostFormat();
       // Append it to our result list.
       doc_id_list.push_back(element);
     }
