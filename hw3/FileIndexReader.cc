@@ -39,7 +39,7 @@ FileIndexReader::FileIndexReader(const string& file_name,
 
   // STEP 2.
   // Read the entire file header and convert to host format.
-  int bytes = fread(&header_, sizeof(IndexFileHeader), 1, file_);
+  Verify333(fread(&header_, sizeof(IndexFileHeader), 1, file_) == 1);
   header_.ToHostFormat();
 
   // STEP 3.

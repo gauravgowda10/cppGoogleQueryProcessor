@@ -132,7 +132,7 @@ static void Usage(char* prog_name) {
 
 static string stringToLowerCase(const string& s) {
   string str = s;
-  for (int i = 0; i < s.length(); i++) {
+  for (uint i = 0; i < s.length(); i++) {
     str[i] = tolower(s[i]);
   }
   return str;
