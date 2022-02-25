@@ -93,7 +93,6 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
       continue;
     }
     result = didtr->GetDocIDList();
-    printf("The size of the result list is: %u \n", result.size());
     delete didtr;
 
     for (int j = 1; j < query.size(); j++) {
@@ -133,7 +132,6 @@ static list<DocIDElementHeader> MergeResults
 
   for (auto const& i : list1) {
     int32_t num_positions = i.num_positions;
-
     for (auto const& j : list2) {
       if (j.doc_id == i.doc_id) {
         num_positions += j.num_positions;

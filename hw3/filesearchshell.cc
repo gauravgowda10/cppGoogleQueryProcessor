@@ -11,16 +11,22 @@
 
 #include <cstdlib>    // for EXIT_SUCCESS, EXIT_FAILURE
 #include <iostream>   // for std::cout, std::cerr, etc.
+#include <sstream>
 
 #include "./QueryProcessor.h"
 
 using std::cerr;
+using std::cin;
+using std::cout;
 using std::endl;
+using std::getline;
 
 // Error usage message for the client to see
 // Arguments:
 // - prog_name: Name of the program
 static void Usage(char* prog_name);
+
+static void stringToLowerCase(string& str);
 
 // Your job is to implement the entire filesearchshell.cc
 // functionality. We're essentially giving you a blank screen to work
@@ -86,7 +92,38 @@ int main(int argc, char** argv) {
   // STEP 1:
   // Implement filesearchshell!
   // Probably want to write some helper methods ...
-  while (1) { }
+  list<string> file_list;
+  for (int i = 1; i < argc; i++) {
+    file_list.push_back(argv[i]);
+  }
+  hw3::QueryProcessor query_processor(file_list);
+  while (true) {
+    cout << "Enter query: " << endl;
+    string user_input;
+    getline(cin, user_input);
+    if (cin.eof()) {
+      break;
+    }
+    stringToLowerCase(user_input);
+    std::stringstream ss(user_input);
+    string word;
+    vector<string> query;
+    while (ss >> word) {
+      query.push_back(word);
+    }
+
+    vector<hw3::QueryProcessor::QueryResult> res =
+    query_processor.ProcessQuery(query);
+
+    if (res.size() == 0) {
+      cout << "  [no results]" << endl;
+    } else {
+      for (auto const& curr_result : res) {
+        std::cout << "  " << curr_result.document_name
+        << " (" << curr_result.rank << ")" << std::endl;
+      }
+    }
+  }
 
   return EXIT_SUCCESS;
 }
@@ -94,4 +131,10 @@ int main(int argc, char** argv) {
 static void Usage(char* prog_name) {
   cerr << "Usage: " << prog_name << " [index files+]" << endl;
   exit(EXIT_FAILURE);
+}
+
+static void stringToLowerCase(string& str) {
+  for (int i = 0; i < str.length(); i++) {
+    str[i] = tolower(str[i]);
+  }
 }
