@@ -20,13 +20,18 @@ using std::cin;
 using std::cout;
 using std::endl;
 using std::getline;
+using std::stringstream;
+using hw3::QueryProcessor;
 
 // Error usage message for the client to see
 // Arguments:
 // - prog_name: Name of the program
 static void Usage(char* prog_name);
 
-static void stringToLowerCase(string& str);
+static string stringToLowerCase(const string& str);
+
+static void printResults(const QueryProcessor& query_processor,
+                            vector<string> query);
 
 // Your job is to implement the entire filesearchshell.cc
 // functionality. We're essentially giving you a blank screen to work
@@ -92,11 +97,13 @@ int main(int argc, char** argv) {
   // STEP 1:
   // Implement filesearchshell!
   // Probably want to write some helper methods ...
+  // list<string> query_list = getQueryList(argc, argv);
   list<string> file_list;
   for (int i = 1; i < argc; i++) {
     file_list.push_back(argv[i]);
   }
-  hw3::QueryProcessor query_processor(file_list);
+
+  QueryProcessor query_processor(file_list);
   while (true) {
     cout << "Enter query: " << endl;
     string user_input;
@@ -104,25 +111,15 @@ int main(int argc, char** argv) {
     if (cin.eof()) {
       break;
     }
-    stringToLowerCase(user_input);
-    std::stringstream ss(user_input);
+    user_input = stringToLowerCase(user_input);
+    stringstream ss(user_input);
     string word;
     vector<string> query;
     while (ss >> word) {
       query.push_back(word);
     }
 
-    vector<hw3::QueryProcessor::QueryResult> res =
-    query_processor.ProcessQuery(query);
-
-    if (res.size() == 0) {
-      cout << "  [no results]" << endl;
-    } else {
-      for (auto const& curr_result : res) {
-        std::cout << "  " << curr_result.document_name
-        << " (" << curr_result.rank << ")" << std::endl;
-      }
-    }
+    printResults(query_processor, query);
   }
 
   return EXIT_SUCCESS;
@@ -133,8 +130,25 @@ static void Usage(char* prog_name) {
   exit(EXIT_FAILURE);
 }
 
-static void stringToLowerCase(string& str) {
-  for (int i = 0; i < str.length(); i++) {
-    str[i] = tolower(str[i]);
+static string stringToLowerCase(const string& s) {
+  string str = s;
+  for (int i = 0; i < s.length(); i++) {
+    str[i] = tolower(s[i]);
   }
+  return str;
+}
+
+static void printResults(const QueryProcessor& query_processor,
+                        vector<string> query) {
+  vector<QueryProcessor::QueryResult> res =
+    query_processor.ProcessQuery(query);
+
+    if (res.size() == 0) {
+      cout << "  [no results]" << endl;
+    } else {
+      for (auto const& curr_result : res) {
+        std::cout << "  " << curr_result.document_name
+        << " (" << curr_result.rank << ")" << std::endl;
+      }
+    }
 }
