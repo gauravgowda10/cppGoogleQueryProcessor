@@ -28,8 +28,10 @@ using hw3::QueryProcessor;
 // - prog_name: Name of the program
 static void Usage(char* prog_name);
 
+// Returns lowercase version of input string
 static string stringToLowerCase(const string& str);
 
+// Prints query results to stdout
 static void printResults(const QueryProcessor& query_processor,
                             vector<string> query);
 
