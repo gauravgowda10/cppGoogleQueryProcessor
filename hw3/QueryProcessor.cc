@@ -95,7 +95,7 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
     result = didtr->GetDocIDList();
     delete didtr;
 
-    for (int j = 1; j < query.size(); j++) {
+    for (uint j = 1; j < query.size(); j++) {
       list<DocIDElementHeader> partial_result;
 
       didtr = itr->LookupWord(query[j]);
