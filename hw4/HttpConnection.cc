@@ -78,12 +78,13 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
     }
   }
 
-  // Parse request
+  // Parse request up until (and including) terminating sequence
+  *request = ParseRequest(buffer_.substr(0, pos + kHeaderEndLen));
 
   // Save data after terminating sequence to main buffer
+  buffer_ = buffer_.substr(pos + kHeaderEndLen);
 
-
-  return false;  // You may want to change this.
+  return true;
 }
 
 bool HttpConnection::WriteResponse(const HttpResponse& response) const {
@@ -124,7 +125,7 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
   boost::split(components, firstLine, boost::is_any_of(" "),
                 boost::token_compress_on);
   req.set_uri(components[1]);
-  
+
   // Parse rest of lines
   for (int i = 1; i < lines.size(); i++) {
     string line = lines[i];
