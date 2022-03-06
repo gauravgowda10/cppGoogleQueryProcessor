@@ -53,7 +53,31 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
   // path of a file.)
 
   // STEP 1
+  char root_absolute[PATH_MAX];
+  char file_absolute[PATH_MAX];
 
+  if (!realpath(root_dir.c_str(), root_absolute)) {
+    return false;
+  }
+
+  if (!realpath(test_file.c_str(), file_absolute)) {
+    return false;
+  }
+
+  // The file path should be within the root directory, so it must
+  // be a greater length
+  if (strlen(root_absolute) >= strlen(file_absolute)) {
+    return false;
+  }
+
+  // Check if file path differs from the root path at any point
+  for (size_t i = 0; i < strlen(root_absolute); i++) {
+    char root_val = root_absolute[i];
+    char file_val = file_absolute[i];
+    if (file_val != root_val) {
+      return false;
+    }
+  }
 
   return true;  // You may want to change this.
 }
@@ -69,7 +93,11 @@ string EscapeHtml(const string& from) {
   // looked up online.
 
   // STEP 2
-
+  replace_all(ret, "&", "&amp;");
+  replace_all(ret, "\"", "&quot;");
+  replace_all(ret, "\'", "&pos;");
+  replace_all(ret, "<", "&lt;");
+  replace_all(ret, ">", "&gt;");
 
   return ret;
 }
