@@ -47,9 +47,81 @@ bool ServerSocket::BindAndListen(int ai_family, int* const listen_fd) {
   // listening socket through the output parameter "listen_fd"
   // and set the ServerSocket data member "listen_sock_fd_"
 
-  // STEP 1:
+  // Populate the "hints" addrinfo structure for getaddrinfo().
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = ai_family;       // IPv6 (also handles IPv4 clients)
+  hints.ai_socktype = SOCK_STREAM;  // stream
+  hints.ai_flags = AI_PASSIVE;      // use wildcard "in6addr_any" address
+  hints.ai_flags |= AI_V4MAPPED;    // use v4-mapped v6 if no v6 found
+  hints.ai_protocol = IPPROTO_TCP;  // tcp protocol
+  hints.ai_canonname = nullptr;
+  hints.ai_addr = nullptr;
+  hints.ai_next = nullptr;
 
+  struct addrinfo* result;
 
+  std::string port = std::to_string(port_);
+  
+  int res = getaddrinfo(nullptr, port.c_str(), &hints, &result);
+
+  if (res != 0) {
+
+    return false;
+  }
+
+  // Loop through the returned address structures until we are able
+  // to create a socket and bind to one.  The address structures are
+  // linked in a list through the "ai_next" field of result.
+  int fd = -1;
+  for (struct addrinfo* rp = result; rp != nullptr; rp = rp->ai_next) {
+    fd = socket(rp->ai_family,
+                       rp->ai_socktype,
+                       rp->ai_protocol);
+    if (fd == -1) {
+      // Creating this socket failed.  So, loop to the next returned
+      // result and try again.
+      fd = -1;
+      continue;
+    }
+
+    // Configure the socket; we're setting a socket "option."  In
+    // particular, we set "SO_REUSEADDR", which tells the TCP stack
+    // so make the port we bind to available again as soon as we
+    // exit, rather than waiting for a few tens of seconds to recycle it.
+    int optval = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
+               &optval, sizeof(optval));
+
+    // Try binding the socket to the address and port number returned
+    // by getaddrinfo().
+    if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0) {
+      sock_family_ = rp->ai_family;
+      break;
+    }
+
+    // The bind failed.  Close the socket, then loop back around and
+    // try the next address/port returned by getaddrinfo().
+    close(fd);
+    fd = -1;
+  }
+
+  // Free the structure returned by getaddrinfo().
+  freeaddrinfo(result);
+
+  // If we failed to bind, return failure.
+  if (fd == -1)
+    return false;
+
+  // Success. Tell the OS that we want this to be a listening socket.
+  if (listen(fd, SOMAXCONN) != 0) {
+    close(fd);
+    return false;
+  }
+
+  // Return to the client the listening file descriptor.
+  *listen_fd = fd;
+  listen_sock_fd_ = fd;
   return true;
 }
 
@@ -64,8 +136,96 @@ bool ServerSocket::Accept(int* const accepted_fd,
   // socket, as well as information about both ends of the new connection,
   // through the various output parameters.
 
-  // STEP 2:
+  struct sockaddr_storage caddr;
+  struct sockaddr *sock_addr = reinterpret_cast<struct sockaddr *>(&caddr);
+  socklen_t caddr_len = sizeof(caddr);
+  int client_fd;
 
+  while (1) {
+    client_fd = accept(listen_sock_fd_,
+                           sock_addr,
+                           &caddr_len);
+    
+    // Try again if recoverable error
+    if (client_fd < 0) {
+      if ((errno == EINTR) || (errno == EAGAIN) || (errno == EWOULDBLOCK))
+        continue;
+      std::cerr << "Failure on accept: " << strerror(errno) << std::endl;
+      return false;
+    }
+    break;
+  }
+  *accepted_fd = client_fd;
+
+  // For IPV4
+  if (sock_addr->sa_family == AF_INET) {
+    char ipstring[INET_ADDRSTRLEN];
+    struct sockaddr_in* v4addr =
+            reinterpret_cast<struct sockaddr_in*>(sock_addr);\
+    // Get client IP addr
+    inet_ntop(AF_INET,
+              &(v4addr->sin_addr),
+              ipstring,
+              INET_ADDRSTRLEN);
+  *client_addr = std::string(ipstring);
+  *client_port = ntohs(v4addr->sin_port);
+  // For IPV6
+  } else if (sock_addr->sa_family == AF_INET6) {
+    char ipstring[INET6_ADDRSTRLEN];
+    struct sockaddr_in6* v6addr =
+            reinterpret_cast<struct sockaddr_in6*>(sock_addr);\
+    // Get client IP addr
+    inet_ntop(AF_INET6,
+              &(v6addr->sin6_addr),
+              ipstring,
+              INET6_ADDRSTRLEN);
+  *client_addr = std::string(ipstring);
+  *client_port = ntohs(v6addr->sin6_port);
+  }
+
+  // Get client DNS name
+  const int dns_length = 256;
+  char dns_name[dns_length];
+
+  if (getnameinfo(sock_addr, caddr_len, dns_name, dns_length, nullptr, 0, 0) != 0) {
+    // If lookup failes, use client address as substitute
+    *client_dns_name = *client_addr;
+    return false;
+  } else {
+    *client_dns_name = std::string(dns_name);
+  }
+
+  // Get server address and DNS name
+
+  char hname[1024];
+
+  if (sock_family_ == AF_INET) {
+    // For IPV4
+    struct sockaddr_in srvr;
+    socklen_t srvrlen = sizeof(srvr);
+    char addrbuf[INET_ADDRSTRLEN];
+    getsockname(client_fd,
+                reinterpret_cast<struct sockaddr*>(&srvr),
+                &srvrlen);
+    inet_ntop(AF_INET, &srvr.sin_addr, addrbuf, INET_ADDRSTRLEN);
+    getnameinfo(reinterpret_cast<struct sockaddr*>(&srvr),
+                srvrlen, hname, 1024, nullptr, 0, 0);
+    *server_dns_name = std::string(hname);
+    *server_addr = std::string(addrbuf);
+  } else {
+    // For IPV6.
+    struct sockaddr_in6 srvr;
+    socklen_t srvrlen = sizeof(srvr);
+    char addrbuf[INET6_ADDRSTRLEN];
+    getsockname(client_fd,
+                reinterpret_cast<struct sockaddr*>(&srvr),
+                &srvrlen);
+    inet_ntop(AF_INET6, &srvr.sin6_addr, addrbuf, INET6_ADDRSTRLEN);
+    getnameinfo(reinterpret_cast<struct sockaddr*>(&srvr),
+                srvrlen, hname, 1024, nullptr, 0, 0);
+    *server_dns_name = std::string(hname);
+    *server_addr = std::string(addrbuf);
+  }
 
   return true;
 }
