@@ -48,6 +48,40 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
 
   // STEP 1:
 
+  int pos = buffer_.find(kHeaderEnd);
+
+  // Read from buffer if terminating sequence is not already in buffer
+  if (pos == std::string::npos) {
+    unsigned char buf[1024];
+
+    while (true) {
+      int bytesRead = WrappedRead(fd_, buf, 1024);
+
+      // No more bytes in fd
+      if (bytesRead == 0) {
+        break;
+      }
+
+      if (bytesRead == -1) {
+        return false;
+      }
+
+      // Append read bytes to main buffer
+      buffer_.append(reinterpret_cast<char*>(buf));
+
+      // Check for terminating sequence and break loop if found
+      pos = buffer_.find(kHeaderEnd);
+
+      if (pos != std::string::npos) {
+        break;
+      }
+    }
+  }
+
+  // Parse request
+
+  // Save data after terminating sequence to main buffer
+
 
   return false;  // You may want to change this.
 }
@@ -82,7 +116,27 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
   // Note: If a header is malformed, skip that line.
 
   // STEP 2:
-
+  vector<string> lines;
+  boost::split(lines, request, boost::is_any_of("\r\n"),
+  boost::token_compress_on);
+  vector<string> components;
+  string firstLine = lines[0];
+  boost::split(components, firstLine, boost::is_any_of(" "),
+                boost::token_compress_on);
+  req.set_uri(components[1]);
+  
+  // Parse rest of lines
+  for (int i = 1; i < lines.size(); i++) {
+    string line = lines[i];
+    boost::split(components, line, boost::is_any_of(" "),
+                  boost::token_compress_off);
+    // Skip if malformed
+    if (components.size() != 2) {
+      continue;
+    }
+    boost::trim(components[1]);
+    req.AddHeader(components[0], components[1]);
+  }
 
   return req;
 }
