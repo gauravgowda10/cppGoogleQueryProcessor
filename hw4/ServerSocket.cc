@@ -62,11 +62,10 @@ bool ServerSocket::BindAndListen(int ai_family, int* const listen_fd) {
   struct addrinfo* result;
 
   std::string port = std::to_string(port_);
-  
+
   int res = getaddrinfo(nullptr, port.c_str(), &hints, &result);
 
   if (res != 0) {
-
     return false;
   }
 
@@ -145,7 +144,7 @@ bool ServerSocket::Accept(int* const accepted_fd,
     client_fd = accept(listen_sock_fd_,
                            sock_addr,
                            &caddr_len);
-    
+
     // Try again if recoverable error
     if (client_fd < 0) {
       if ((errno == EINTR) || (errno == EAGAIN) || (errno == EWOULDBLOCK))
@@ -184,10 +183,10 @@ bool ServerSocket::Accept(int* const accepted_fd,
   }
 
   // Get client DNS name
-  const int dns_length = 256;
-  char dns_name[dns_length];
+  char dns_name[256];
 
-  if (getnameinfo(sock_addr, caddr_len, dns_name, dns_length, nullptr, 0, 0) != 0) {
+  if (getnameinfo(sock_addr, caddr_len, dns_name,
+      256, nullptr, 0, 0) != 0) {
     // If lookup failes, use client address as substitute
     *client_dns_name = *client_addr;
     return false;
