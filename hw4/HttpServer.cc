@@ -134,8 +134,25 @@ static void HttpServer_ThrFn(ThreadPool::Task* t) {
 
   // STEP 1:
   bool done = false;
+  HttpConnection http_con(hst->client_fd);
   while (!done) {
-    done = true;  // you may want to change this value
+    HttpRequest http_req;
+    if (!http_con.GetNextRequest(&http_req)) {
+      done = true;
+    }
+    HttpResponse http_res = ProcessRequest(http_req, 
+    hst->base_dir, *hst->indices);
+    if (!http_con.WriteResponse(http_res)) {
+      done = true;
+    }
+
+    if(http_req.GetHeaderValue("Connection") == "close\r\n") {
+      done = true;
+    }
+    if(done){
+      close(hst->client_fd);
+    }
+    //done = true;  // you may want to change this value
   }
 }
 
@@ -181,6 +198,47 @@ static HttpResponse ProcessFileRequest(const string& uri,
   string file_name = "";
 
   // STEP 2:
+
+  // Part 1:
+  URLParser url_parser;
+  url_parser.Parse(uri);
+  file_name += url_parser.path();
+  // remove static
+  file_name = file_name.substr(8, file_name.length() - 1);
+  
+  // Part 2:
+  FileReader file_reader(base_dir, file_name);
+  string body;
+  if (!file_reader.ReadFile(&body)) {
+    // Find Extention Name
+    string extension_name = file_name.substr(file_name.find("."), 
+    file_name.length() - 1);
+
+    // Part 3
+    ret.AppendToBody(body);
+
+    // Part 4
+    if(extension_name == ".html" || extension_name == ".html" ) {
+      ret.set_content_type("text/html");
+    } else if (extension_name == ".jpeg" || extension_name == ".jpg") {
+      ret.set_content_type("image/jpeg");
+    } else if (extension_name == ".png") {
+      ret.set_content_type("image/png");
+    } else if (extension_name == ".txt") {
+      ret.set_content_type("text/txt");
+    } else if (extension_name == ".js") {
+      ret.set_content_type("text/javascript");
+    } else if (extension_name == ".css") {
+      ret.set_content_type("text/css");
+    } else if (extension_name == ".xml") {
+      ret.set_content_type("text/xml");
+    } else if (extension_name == ".gif") {
+      ret.set_content_type("image/gif");
+    }
+    ret.set_protocol("HTTP/1.1");
+    ret.set_response_code(200);
+    ret.set_message("OK");
+  } 
 
 
   // If you couldn't find the file, return an HTTP 404 error.
