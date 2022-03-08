@@ -56,7 +56,7 @@ bool FileReader::ReadFile(string* const contents) {
   }
   *contents = string(result, size);
   
-  free(contents);
+  free(result);
   return true;
 }
 
