@@ -290,20 +290,42 @@ static HttpResponse ProcessQueryRequest(const string& uri,
     parser.Parse(uri);
 
     map<string, string> args = parser.args();
-    string query = args["terms"];
+    string query = EscapeHtml(args["terms"]);
+    boost::to_lower(query);
+    boost::trim(query);
     vector<string> query_list;
     boost::split(query_list, query, boost::is_any_of(" "), boost::token_compress_on);
     
     QueryProcessor query_processor(indices, true);
     vector<QueryProcessor::QueryResult> query_results = query_processor.ProcessQuery(query_list);
+    size_t num_queries = query_results.size();
+
     ret.AppendToBody("<p><br>\n");
-    if (query_results.size() == 0) {
+    if (num_queries == 0) {
       // No results found
       ret.AppendToBody("No results found for <b>");
-      ret.AppendToBody(EscapeHtml(query));
+      ret.AppendToBody(query);
       ret.AppendToBody("</b></p>\n");
     } else {
-      std::cout << "Queries found" << std::endl;
+      ret.AppendToBody(std::to_string(num_queries) + " results found for <b>");
+      ret.AppendToBody(query);
+      ret.AppendToBody("</b></p>\n");
+
+      ret.AppendToBody("<p></p>\n\n");
+      ret.AppendToBody("<ul>");
+
+      // Loop through results
+      for (size_t i; i < num_queries; i++) {
+        QueryProcessor::QueryResult result = query_results[i];
+        string name = result.document_name;
+        int rank = result.rank;
+
+        // Print each result to page
+      }
+
+      ret.AppendToBody("</ul>");
+      ret.AppendToBody("</body></html>");
+
     }
   }
   
