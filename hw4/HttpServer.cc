@@ -313,20 +313,26 @@ static HttpResponse ProcessQueryRequest(const string& uri,
 
       ret.AppendToBody("<p></p>\n\n");
       ret.AppendToBody("<ul>");
-
       // Loop through results
-      for (size_t i; i < num_queries; i++) {
+      for (size_t i = 0; i < num_queries; i++) {
         QueryProcessor::QueryResult result = query_results[i];
-        string name = result.document_name;
+        string name = EscapeHtml(result.document_name);
         int rank = result.rank;
 
         // Print each result to page
+        ret.AppendToBody("<li><a href=\"");
+        string link = "/static/";
+        ret.AppendToBody(link + name + "\">");
+        ret.AppendToBody(name + "</a> [");
+
+        // Add rank
+        ret.AppendToBody(std::to_string(rank) + "]");
+
+        ret.AppendToBody("<br></li>");
       }
-
       ret.AppendToBody("</ul>");
-      ret.AppendToBody("</body></html>");
-
     }
+    ret.AppendToBody("</body></html>");
   }
   
   return ret;
