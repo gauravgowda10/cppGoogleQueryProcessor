@@ -22,6 +22,7 @@
 
 #include "./ServerSocket.h"
 #include "./HttpServer.h"
+#include "./HttpUtils.h"
 
 using std::cerr;
 using std::cout;
@@ -101,5 +102,56 @@ static void GetPortAndPath(int argc,
   // - You have at least 1 index, and all indices are readable files
 
   // STEP 1:
+  if (argc < 4) {
+    Usage(argv[0]);
+  }
+
+  // Set port
+  *port = atoi(argv[1]);
+
+  // Verify port is valid
+  if (*port < 1024 || *port > 99999) {
+    cerr << "Invalid port number" << endl;
+    Usage(argv[0]);
+  }
+
+  // Set path and verify readable directory
+  *path = argv[2];
+
+  struct stat path_stat;
+  if (stat(path->c_str(), &path_stat) < 0) {
+    perror("Invalid directory path provided");
+    Usage(argv[0]);
+  }
+
+  if (!S_ISDIR(path_stat.st_mode)) {
+    cerr << "Provided path is not a directory" << endl;
+    Usage(argv[0]);
+  }
+
+  // Read indices
+  for (int i = 3; i < argc; i++) {
+    // Make sure index is safe
+    if (!hw4::IsPathSafe(*path, argv[i])) {
+      cerr << "Unsafe index detected" << endl;
+      Usage(argv[0]);
+    }
+    struct stat index_stat;
+
+    if (stat(argv[i], &index_stat) < 0) {
+      perror("Could not read index file information");
+      Usage(argv[0]);
+    }
+
+    if (!S_ISREG(index_stat.st_mode)) {
+      cerr << "Invalid index file provided" << endl;
+      Usage(argv[0]);
+    }
+    
+    indices->push_back(argv[i]);
+  }
+
+
+
 }
 
