@@ -300,29 +300,30 @@ static HttpResponse ProcessQueryRequest(const string& uri,
                 query_processor.ProcessQuery(query_list);
     size_t num_queries = query_results.size();
 
-    ret.AppendToBody("<p><br>\n");
+    ret.AppendToBody("<p><br>\r\n");
     if (num_queries == 0) {
       // No results found
       ret.AppendToBody("No results found for <b>");
       ret.AppendToBody(query);
-      ret.AppendToBody("</b></p>\n");
+      ret.AppendToBody("</b></p>\r\n");
     } else {
       ret.AppendToBody(std::to_string(num_queries) + " results found for <b>");
       ret.AppendToBody(query);
-      ret.AppendToBody("</b></p>\n");
+      ret.AppendToBody("</b></p>\r\n");
 
-      ret.AppendToBody("<p></p>\n\n");
+      ret.AppendToBody("<p></p>\r\n\r\n");
       ret.AppendToBody("<ul>");
       // Loop through results
       for (size_t i = 0; i < num_queries; i++) {
         QueryProcessor::QueryResult result = query_results[i];
         string name = EscapeHtml(result.document_name);
         int rank = result.rank;
-
         // Print each result to page
         ret.AppendToBody("<li><a style=\"color:rgb(232,232,232)\"href=\"");
-        string link = "/static/";
-        ret.AppendToBody(link + name + "\">");
+        if (name.substr(0, 7) != "http://") {
+          ret.AppendToBody("/static/");
+        }        
+        ret.AppendToBody(name + "\">");
         ret.AppendToBody(name + "</a> [");
 
         // Add rank
