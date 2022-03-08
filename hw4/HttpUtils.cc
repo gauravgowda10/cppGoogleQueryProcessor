@@ -77,6 +77,11 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
     if (file_val != root_val) {
       return false;
     }
+    if (i == strlen(root_absolute) - 1) {
+      if (file_absolute[i + 1] != '/') {
+        return false;
+      }
+    }
   }
 
   return true;
