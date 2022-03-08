@@ -147,11 +147,7 @@ static void GetPortAndPath(int argc,
       cerr << "Invalid index file provided" << endl;
       Usage(argv[0]);
     }
-    
+
     indices->push_back(argv[i]);
   }
-
-
-
 }
-

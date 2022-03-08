@@ -142,19 +142,18 @@ static void HttpServer_ThrFn(ThreadPool::Task* t) {
     if (!http_con.GetNextRequest(&http_req)) {
       done = true;
     }
-    HttpResponse http_res = ProcessRequest(http_req, 
-    hst->base_dir, *hst->indices);
+    HttpResponse http_res = ProcessRequest(http_req,
+                      hst->base_dir, *hst->indices);
     if (!http_con.WriteResponse(http_res)) {
       done = true;
     }
 
-    if(http_req.GetHeaderValue("Connection") == "close\r\n") {
+    if (http_req.GetHeaderValue("Connection") == "close\r\n") {
       done = true;
     }
-    if(done){
+    if (done) {
       close(hst->client_fd);
     }
-    //done = true;  // you may want to change this value
   }
 }
 
@@ -207,20 +206,20 @@ static HttpResponse ProcessFileRequest(const string& uri,
   file_name += url_parser.path();
   // remove static
   file_name = file_name.substr(8, file_name.length() - 1);
-  
+
   // Part 2:
   FileReader file_reader(base_dir, file_name);
   string body;
   if (!file_reader.ReadFile(&body)) {
     // Find Extention Name
-    string extension_name = file_name.substr(file_name.find("."), 
+    string extension_name = file_name.substr(file_name.find("."),
     file_name.length() - 1);
 
     // Part 3
     ret.AppendToBody(body);
 
     // Part 4
-    if(extension_name == ".html" || extension_name == ".html" ) {
+    if (extension_name == ".html" || extension_name == ".html") {
       ret.set_content_type("text/html");
     } else if (extension_name == ".jpeg" || extension_name == ".jpg") {
       ret.set_content_type("image/jpeg");
@@ -240,7 +239,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
     ret.set_protocol("HTTP/1.1");
     ret.set_response_code(200);
     ret.set_message("OK");
-  } 
+  }
 
 
   // If you couldn't find the file, return an HTTP 404 error.
@@ -283,7 +282,7 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   ret.set_protocol("HTTP/1.1");
   ret.set_response_code(200);
   ret.set_message("OK");
-  
+
   // Check for a query
   if (uri.find("query?terms") != string::npos) {
     URLParser parser;
@@ -294,10 +293,11 @@ static HttpResponse ProcessQueryRequest(const string& uri,
     boost::to_lower(query);
     boost::trim(query);
     vector<string> query_list;
-    boost::split(query_list, query, boost::is_any_of(" "), boost::token_compress_on);
-    
+    boost::split(query_list, query, boost::is_any_of(" "),
+                boost::token_compress_on);
     QueryProcessor query_processor(indices, true);
-    vector<QueryProcessor::QueryResult> query_results = query_processor.ProcessQuery(query_list);
+    vector<QueryProcessor::QueryResult> query_results =
+                query_processor.ProcessQuery(query_list);
     size_t num_queries = query_results.size();
 
     ret.AppendToBody("<p><br>\n");
@@ -334,7 +334,6 @@ static HttpResponse ProcessQueryRequest(const string& uri,
     }
     ret.AppendToBody("</body></html>");
   }
-  
   return ret;
 }
 
