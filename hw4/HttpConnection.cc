@@ -48,7 +48,7 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
 
   // STEP 1:
 
-  int pos = buffer_.find(kHeaderEnd);
+  size_t pos = buffer_.find(kHeaderEnd);
 
   // Read from buffer if terminating sequence is not already in buffer
   if (pos == std::string::npos) {
@@ -127,7 +127,7 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
   req.set_uri(components[1]);
 
   // Parse rest of lines
-  for (int i = 1; i < lines.size(); i++) {
+  for (size_t i = 1; i < lines.size(); i++) {
     string line = lines[i];
     boost::split(components, line, boost::is_any_of(" "),
                   boost::token_compress_off);

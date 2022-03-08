@@ -45,7 +45,7 @@ bool FileReader::ReadFile(string* const contents) {
   // HttpUtils.h above the MallocDeleter class for details.
 
   // STEP 1:
-
+  
 
   return true;
 }
