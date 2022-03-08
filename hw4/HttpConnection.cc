@@ -67,7 +67,7 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
       }
 
       // Append read bytes to main buffer
-      buffer_.append(reinterpret_cast<char*>(buf));
+      buffer_.append(reinterpret_cast<char*>(buf), bytesRead);
 
       // Check for terminating sequence and break loop if found
       pos = buffer_.find(kHeaderEnd);
@@ -119,24 +119,35 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
   // STEP 2:
   vector<string> lines;
   boost::split(lines, request, boost::is_any_of("\r\n"),
-  boost::token_compress_on);
+              boost::token_compress_on);
+
+  if (lines.size() < 2) {
+    return req;
+  }
+
   vector<string> components;
   string firstLine = lines[0];
   boost::split(components, firstLine, boost::is_any_of(" "),
                 boost::token_compress_on);
+  if (components.size() < 2) {
+    return req;
+  }
+
   req.set_uri(components[1]);
 
   // Parse rest of lines
   for (size_t i = 1; i < lines.size(); i++) {
     string line = lines[i];
-    boost::split(components, line, boost::is_any_of(" "),
-                  boost::token_compress_off);
     // Skip if malformed
-    if (components.size() != 2) {
+    if (line.find(": ") == std::string::npos) {
       continue;
     }
-    boost::trim(components[1]);
-    req.AddHeader(components[0], components[1]);
+    boost::to_lower(line);
+    vector<string> headers;
+    boost::split(headers, line, boost::is_any_of(": "),
+                  boost::token_compress_on);
+
+    req.AddHeader(headers[0], headers[1]);
   }
 
   return req;

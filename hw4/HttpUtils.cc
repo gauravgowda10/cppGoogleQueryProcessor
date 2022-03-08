@@ -79,7 +79,7 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
     }
   }
 
-  return true;  // You may want to change this.
+  return true;
 }
 
 string EscapeHtml(const string& from) {
@@ -95,7 +95,7 @@ string EscapeHtml(const string& from) {
   // STEP 2
   replace_all(ret, "&", "&amp;");
   replace_all(ret, "\"", "&quot;");
-  replace_all(ret, "\'", "&pos;");
+  replace_all(ret, "\'", "&apos;");
   replace_all(ret, "<", "&lt;");
   replace_all(ret, ">", "&gt;");
 
