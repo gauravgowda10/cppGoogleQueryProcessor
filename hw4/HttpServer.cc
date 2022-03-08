@@ -32,6 +32,8 @@ using std::map;
 using std::string;
 using std::stringstream;
 using std::unique_ptr;
+using hw3::QueryProcessor;
+using std::map;
 
 namespace hw4 {
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,7 +43,7 @@ static const char* kThreegleStr =
   "<html><head><title>333gle</title></head>\n"
   "<body>\n"
   "<center style=\"font-size:500%;\">\n"
-  "<span style=\"position:relative;bottom:-0.33em;color:orange;\">3</span>"
+  "<span style=\"position:relative;bottom:-0.33em;color:gray;\">3</span>"
     "<span style=\"color:gray;\">3</span>"
     "<span style=\"color:gray;\">3</span>"
     "<span style=\"color:gray;\">g</span>"
@@ -277,7 +279,34 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   //    tags!)
 
   // STEP 3:
+  ret.AppendToBody(kThreegleStr);
+  ret.set_protocol("HTTP/1.1");
+  ret.set_response_code(200);
+  ret.set_message("OK");
+  
+  // Check for a query
+  if (uri.find("query?terms") != string::npos) {
+    URLParser parser;
+    parser.Parse(uri);
 
+    map<string, string> args = parser.args();
+    string query = args["terms"];
+    vector<string> query_list;
+    boost::split(query_list, query, boost::is_any_of(" "), boost::token_compress_on);
+    
+    QueryProcessor query_processor(indices, true);
+    vector<QueryProcessor::QueryResult> query_results = query_processor.ProcessQuery(query_list);
+    ret.AppendToBody("<p><br>\n");
+    if (query_results.size() == 0) {
+      // No results found
+      ret.AppendToBody("No results found for <b>");
+      ret.AppendToBody(EscapeHtml(query));
+      ret.AppendToBody("</b></p>\n");
+    } else {
+      std::cout << "Queries found" << std::endl;
+    }
+  }
+  
   return ret;
 }
 
