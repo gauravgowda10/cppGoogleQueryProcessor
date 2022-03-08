@@ -41,7 +41,7 @@ namespace hw4 {
 ///////////////////////////////////////////////////////////////////////////////
 static const char* kThreegleStr =
   "<html><head><title>333gle</title></head>\n"
-  "<body>\n"
+  "<body style=\"background-color:rgb(24,24,24);color:rgb(232,232,232)\">\n"
   "<center style=\"font-size:500%;\">\n"
   "<span style=\"position:relative;bottom:-0.33em;color:gray;\">3</span>"
     "<span style=\"color:gray;\">3</span>"
@@ -320,7 +320,7 @@ static HttpResponse ProcessQueryRequest(const string& uri,
         int rank = result.rank;
 
         // Print each result to page
-        ret.AppendToBody("<li><a href=\"");
+        ret.AppendToBody("<li><a style=\"color:rgb(232,232,232)\"href=\"");
         string link = "/static/";
         ret.AppendToBody(link + name + "\">");
         ret.AppendToBody(name + "</a> [");
