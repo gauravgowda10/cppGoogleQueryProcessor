@@ -28,12 +28,11 @@
 # Bug 3
 
 ## A) How is your program acting differently than you expect it to?
-- 
+- The Server is not able to display static files properly. All static files are "not found".
 
 ## B) Brainstorm a few possible causes of the bug
-- 
-- 
-- 
+- This is likely due to an error in either `IsPathSafe()` or `ProcessFileRequest()` . 
+- It doesn't seem like the server is recognizing what type of file to display, so something to do with the GET request is incorrect since the content type isn't set correctly.
 
 ## C) How you fixed the bug and why the fix was necessary
-- 
+- It turns out `ProcessFileRequest()` was the issue. We weren't setting the content type appropriately due to some errors in the conditional statements.

@@ -210,7 +210,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
   // Part 2:
   FileReader file_reader(base_dir, file_name);
   string body;
-  if (!file_reader.ReadFile(&body)) {
+  if (file_reader.ReadFile(&body)) {
     // Find Extention Name
     string extension_name = file_name.substr(file_name.find("."),
     file_name.length() - 1);
@@ -219,7 +219,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
     ret.AppendToBody(body);
 
     // Part 4
-    if (extension_name == ".html" || extension_name == ".html") {
+    if (extension_name == ".html" || extension_name == ".htm") {
       ret.set_content_type("text/html");
     } else if (extension_name == ".jpeg" || extension_name == ".jpg") {
       ret.set_content_type("image/jpeg");
@@ -239,8 +239,8 @@ static HttpResponse ProcessFileRequest(const string& uri,
     ret.set_protocol("HTTP/1.1");
     ret.set_response_code(200);
     ret.set_message("OK");
+    return ret;
   }
-
 
   // If you couldn't find the file, return an HTTP 404 error.
   ret.set_protocol("HTTP/1.1");
@@ -322,7 +322,7 @@ static HttpResponse ProcessQueryRequest(const string& uri,
         ret.AppendToBody("<li><a style=\"color:rgb(232,232,232)\"href=\"");
         if (name.substr(0, 7) != "http://") {
           ret.AppendToBody("/static/");
-        }        
+        }
         ret.AppendToBody(name + "\">");
         ret.AppendToBody(name + "</a> [");
 
