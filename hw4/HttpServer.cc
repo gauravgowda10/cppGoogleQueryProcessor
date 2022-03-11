@@ -203,7 +203,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
   // Part 1:
   URLParser url_parser;
   url_parser.Parse(uri);
-  file_name += url_parser.path();
+  file_name = url_parser.path();
   // remove static
   file_name = file_name.substr(8, file_name.length() - 1);
 

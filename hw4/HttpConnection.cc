@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include <iostream>
+
 #include "./HttpRequest.h"
 #include "./HttpUtils.h"
 #include "./HttpConnection.h"
@@ -78,12 +80,16 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
     }
   }
 
+  if (pos == std::string::npos) {
+    return false;
+  }
+
   // Parse request up until (and including) terminating sequence
   *request = ParseRequest(buffer_.substr(0, pos + kHeaderEndLen));
 
   // Save data after terminating sequence to main buffer
-  buffer_ = buffer_.substr(pos + kHeaderEndLen);
-
+  size_t starting_point = pos + kHeaderEndLen;
+  buffer_ = buffer_.substr(starting_point);
   return true;
 }
 
